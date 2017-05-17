@@ -5,9 +5,11 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/logo"
-        android:label="@string/app_name"
+        android:label="@string/app_ch_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -15,6 +17,16 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".WelcomeActivity">
+
+        </activity>
     </application>
+
+    <!-- 连接互联网 Internet 权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- GPS 定位权限 -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
 
 </manifest>

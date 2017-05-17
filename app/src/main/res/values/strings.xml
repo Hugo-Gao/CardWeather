@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">CardWeather</string>
+    <string name="app_eng_name">CardWeather</string>
+    <string name="app_ch_name">卡片天气</string>
 </resources>
