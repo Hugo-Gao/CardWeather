@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                    xmlns:app="http://schemas.android.com/apk/res-auto"
                                     android:layout_width="match_parent"
                                     android:layout_height="200dp"
-                                    android:layout_margin="10dp"
-                                    android:elevation="15dp"
+                                    android:layout_marginStart="10dp"
+                                    android:layout_marginEnd="10dp"
+                                    android:layout_marginTop="10dp"
+                                    android:layout_marginBottom="5dp"
+                                    app:cardElevation="5dp"
+                                    android:clickable="false"
+                                    android:foreground="?attr/selectableItemBackground"
                                     >
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,7 +26,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="星期一"
+                android:text="星期*"
                 android:textSize="25sp"
                 android:textColor="@color/colorPrimary"
                 android:layout_marginTop="10dp"
@@ -34,7 +40,7 @@
                 android:textSize="45sp"
                 android:layout_marginLeft="130dp"
                 android:layout_marginTop="50dp"
-                android:text="26℃"
+                android:text="**℃"
                 android:id="@+id/temperature"/>
             <ImageView
                 android:layout_width="80dp"
@@ -48,7 +54,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="最近更新: 12:00"
+                android:text="最近更新: **:**"
                 android:textSize="20sp"
                 android:layout_marginTop="150dp"
                 android:gravity="center"
@@ -83,7 +89,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="30sp"
-                    android:text="25"
+                    android:text="**"
                     android:layout_marginLeft="10dp"
                     android:layout_marginTop="12dp"
                     android:textColor="#ffff"
@@ -109,7 +115,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="30sp"
-                    android:text="25"
+                    android:text="**"
                     android:layout_marginLeft="10dp"
                     android:layout_marginTop="12dp"
                     android:textColor="#ffff"
@@ -135,7 +141,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="30sp"
-                    android:text="25"
+                    android:text="**"
                     android:layout_marginLeft="10dp"
                     android:layout_marginTop="12dp"
                     android:textColor="#ffff"

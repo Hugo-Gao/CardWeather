@@ -1,7 +1,6 @@
 package com.gaoyunfan.cardweather;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.graphics.Color;
 import android.location.Geocoder;
 import android.location.Location;
@@ -9,11 +8,19 @@ import android.location.LocationListener;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import Bean.PredictBean;
+import adapter.FutureCardAdapter;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -27,9 +34,20 @@ public class MainActivity extends Activity
     private LocationUtil locationUtil;
     private Location newLocation;
     private String cityName;
+    private List<PredictBean> preBeanList;
+    private FutureCardAdapter adapter;
+    @BindView(R.id.swipe_layout)
+    SwipeRefreshLayout swipeRefreshLayout;
+
+    @BindView(R.id.recycler_view)
+    RecyclerView recyclerView;
 
     @BindView(R.id.floatbutton)
     FloatingActionButton fab;
+
+    @BindView(R.id.title)
+    TextView titleTxt;
+
     @OnClick(R.id.floatbutton)
     public void fabClick(FloatingActionButton fab)
     {
@@ -48,6 +66,22 @@ public class MainActivity extends Activity
         PermissionUtil.getPermission(this);
         locationUtil = new LocationUtil(this);
         final Geocoder ge = new Geocoder(this);
+        getNowLocation(ge);
+        preBeanList = new ArrayList<>();
+        for (int i = 0; i < 5; i++)
+        {
+            preBeanList.add(new PredictBean.Builder().date("2017年5月18日").
+                    describe("多云").Temp("15~25").weekDay("星期四").build());
+        }
+        adapter = new FutureCardAdapter(this, preBeanList);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
+
+    }
+
+    private void getNowLocation(final Geocoder ge)
+    {
         locationUtil.getLocation(new LocationListener()
         {
             @Override
@@ -58,6 +92,7 @@ public class MainActivity extends Activity
                 try
                 {
                     cityName = ge.getFromLocation(location.getLatitude(), location.getLongitude(), 1).get(0).getSubLocality();
+                    titleTxt.setText(cityName);
                 } catch (IOException e)
                 {
                     e.printStackTrace();
