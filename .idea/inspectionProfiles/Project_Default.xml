@@ -4,6 +4,7 @@
     <inspection_tool class="AndroidLintGradleCompatible" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="AndroidLintNewApi" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="AndroidLintObjectAnimatorBinding" enabled="false" level="ERROR" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintSetTextI18n" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AndroidLintUnusedAttribute" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="FieldCanBeLocal" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="LoggerInitializedWithForeignClass" enabled="false" level="WARNING" enabled_by_default="false">
@@ -11,5 +12,9 @@
       <option name="loggerFactoryMethodName" value="getLogger,getLogger,getLog,getLogger" />
     </inspection_tool>
     <inspection_tool class="ResourceType" enabled="false" level="ERROR" enabled_by_default="false" />
+    <inspection_tool class="SerializableHasSerialVersionUIDField" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoreAnonymousInnerClasses" value="false" />
+      <option name="superClassString" value="" />
+    </inspection_tool>
   </profile>
 </component>

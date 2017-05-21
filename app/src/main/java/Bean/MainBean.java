@@ -1,25 +1,45 @@
 package Bean;
 
-import android.widget.ImageView;
+import android.graphics.Bitmap;
 
 /**
  * Created by Administrator on 2017/5/18.
  */
-
 public class MainBean
 {
-    private int temp;
-    private ImageView pic;
-    private String date;
-    private String time;
-    private int pmValue;
 
-    public int getTemp()
+    private String temp;//当前温度
+    private Bitmap pic;//图片
+    private String date;//日期
+    private String time;//更新时间
+    private String pmValue;//pm2.5
+    private String humidity;//湿度
+    private String windSpeed;//风速
+
+    public void setPmValue(String pmValue)
     {
+        this.pmValue = pmValue;
+    }
+
+    public String getWeatherInfo()
+    {
+        return weatherInfo;
+    }
+
+    private String weatherInfo;//对天气的描述：多云
+
+    public void setPic(Bitmap pic)
+    {
+        this.pic = pic;
+    }
+
+    public String getTemp()
+    {
+
         return temp;
     }
 
-    public ImageView getPic()
+    public Bitmap getPic()
     {
         return pic;
     }
@@ -34,23 +54,22 @@ public class MainBean
         return time;
     }
 
-    public int getPmValue()
+    public String getPmValue()
     {
         return pmValue;
     }
 
-    public int getHumidity()
+    public String getHumidity()
     {
         return humidity;
     }
 
-    public int getWindSpeed()
+    public String getWindSpeed()
     {
         return windSpeed;
     }
 
-    private int humidity;
-    private int windSpeed;
+
 
     @Override
     public String toString()
@@ -75,27 +94,36 @@ public class MainBean
         this.pmValue =builder. pmValue;
         this.humidity = builder.humidity;
         this.windSpeed = builder.windSpeed;
+        this.weatherInfo = builder.weatherInfo;
     }
 
     public static class Builder{
-        private int temp;
-        private ImageView pic;
+        private String temp;
+        private Bitmap pic;
         private String date;
         private String time;
-        private int pmValue;
-        private int humidity;
-        private int windSpeed;
+        private String pmValue;
+        private String humidity;
+        private String windSpeed;
+        private String weatherInfo;//对天气的描述：多云
 
         public Builder(){
         }
         public MainBean build(){
             return new MainBean(this);
         }
-        public Builder temp(int val){
+        public Builder temp(String val){
             this.temp=val;
             return this;
         }
-        public Builder pic(ImageView val){
+
+        public Builder weatherInfo(String val)
+        {
+            this.weatherInfo=val;
+            return this;
+        }
+
+        public Builder pic(Bitmap val){
             this.pic=val;
             return this;
         }
@@ -107,15 +135,15 @@ public class MainBean
             this.time=val;
             return this;
         }
-        public Builder pmValue(int val){
+        public Builder pmValue(String val){
             this.pmValue=val;
             return this;
         }
-        public Builder humidity(int val){
+        public Builder humidity(String val){
             this.humidity=val;
             return this;
         }
-        public Builder windSpeed(int val){
+        public Builder windSpeed(String val){
             this.windSpeed=val;
             return this;
         }

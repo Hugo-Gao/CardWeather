@@ -4,4 +4,8 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="colorPressed">#720058</color>
+    <color name="colorSnowy">#FAFAFA</color>
+    <color name="colorCloudy">#8D95A1</color>
+    <color name="colorSunny">#F5BE25</color>
+    <color name="colorRainy">#457AD1</color>
 </resources>
