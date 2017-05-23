@@ -17,27 +17,27 @@ public class PermissionUtil
 
 
     private static final String[] perms = {"android.permission.ACCESS_COARSE_LOCATION",
-            "android.permission.ACCESS_FINE_LOCATION"};
-    private static final int permsRequestCode=200;
-
+            "android.permission.ACCESS_FINE_LOCATION", "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.WRITE_EXTERNAL_STORAGE"};
+    private static final int permsRequestCode = 200;
 
     public static void getPermission(Context context)
     {
-        if(!hasPermission(perms,context))
+        if (!hasPermission(perms, context))
         {
-            requestPermissions((Activity) context,perms,permsRequestCode);
+            requestPermissions((Activity) context, perms, permsRequestCode);
         }
     }
 
     private static boolean hasPermission(String[] permissions, Context context)
     {
-        if(OverLollipop())
+        if (OverLollipop())
         {
             for (String permission : permissions)
             {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
                 {
-                    if(checkSelfPermission(context,permission)!= PackageManager.PERMISSION_GRANTED)
+                    if (checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED)
                     {
                         return false;
                     }
@@ -48,10 +48,9 @@ public class PermissionUtil
     }
 
 
-
-
     /**
      * 检查是否需要大于Android 6.0
+     *
      * @return
      */
     private static boolean OverLollipop()

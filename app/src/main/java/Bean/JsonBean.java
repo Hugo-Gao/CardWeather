@@ -36,7 +36,7 @@ public class JsonBean implements Serializable
                 '}';
     }
 
-    public class realtime implements Serializable
+    public static class realtime implements Serializable
     {
         private static final long serialVersionUID = 1896706133328782584L;
         @SerializedName("wind")
@@ -69,7 +69,7 @@ public class JsonBean implements Serializable
 
         public String moon;
 
-        public class wind implements Serializable
+        public static class wind implements Serializable
         {
             private static final long serialVersionUID = 349935476262268005L;
 
@@ -86,7 +86,7 @@ public class JsonBean implements Serializable
             public String power;
         }
 
-        public class weather implements Serializable
+        public static class  weather implements Serializable
         {
             private static final long serialVersionUID = 103025311918539131L;
             public String humidity;
@@ -106,7 +106,7 @@ public class JsonBean implements Serializable
         }
     }
 
-    public class life implements Serializable
+    public static class life implements Serializable
     {
         private static final long serialVersionUID = 2134152496216484352L;
         @SerializedName("info")
@@ -120,7 +120,7 @@ public class JsonBean implements Serializable
                     '}';
         }
 
-        public class info implements Serializable
+        public static class info implements Serializable
         {
             private static final long serialVersionUID = 4509544168289757346L;
 
@@ -146,7 +146,7 @@ public class JsonBean implements Serializable
         }
     }
 
-    public class Item implements Serializable
+    public static class Item implements Serializable
     {
         private static final long serialVersionUID = 70305982358535793L;
         public String date;
@@ -167,7 +167,7 @@ public class JsonBean implements Serializable
         @SerializedName("info")
         public info weatherInfo;
 
-        public class info implements Serializable
+        public static class info implements Serializable
         {
             private static final long serialVersionUID = 5181543468995402629L;
             public List<String> dawn;
@@ -187,7 +187,7 @@ public class JsonBean implements Serializable
         }
     }
 
-    public class pm25 implements Serializable {
+    public static class pm25 implements Serializable {
 
         private static final long serialVersionUID = 2570269960269165089L;
         @SerializedName("pm25")
@@ -203,7 +203,7 @@ public class JsonBean implements Serializable
                     '}';
         }
 
-        public class pm25Info implements Serializable{
+        public static class pm25Info implements Serializable{
             private static final long serialVersionUID = 4230747197207370204L;
             public String curPm;
             public String pm25;

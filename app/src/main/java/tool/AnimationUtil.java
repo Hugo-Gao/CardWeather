@@ -1,9 +1,11 @@
 package tool;
 
-import android.animation.Animator;
 import android.animation.AnimatorSet;
+import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.view.View;
+import android.widget.LinearLayout;
 
 /**
  * Created by Administrator on 2017/5/17.
@@ -31,7 +33,43 @@ public class AnimationUtil
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playTogether(animator, animator2, animator3);
         animatorSet.start();
+    }
 
+    public static void CardFlyUp(View card)
+    {
+        ObjectAnimator animator = ObjectAnimator.ofFloat(card, "translationZ", 200F);
+        ObjectAnimator animator2 = ObjectAnimator.ofFloat(card, "scaleX",  1.03F);
+        ObjectAnimator animator3 = ObjectAnimator.ofFloat(card, "scaleY",  1.03F);
+        AnimatorSet set = new AnimatorSet();
+        set.playTogether(animator, animator2, animator3);
+        set.setDuration(500);
+        set.start();
+    }
 
+    public static void CardDropDown(View card)
+    {
+        ObjectAnimator animator = ObjectAnimator.ofFloat(card, "translationZ", 0F);
+        ObjectAnimator animator2 = ObjectAnimator.ofFloat(card, "scaleX", 1.01F);
+        ObjectAnimator animator3 = ObjectAnimator.ofFloat(card, "scaleY",  1F);
+        AnimatorSet set = new AnimatorSet();
+        set.playTogether(animator, animator2, animator3);
+        set.setDuration(500);
+        set.start();
+    }
+
+    public static void ColorChangeAnimation(View view, int colorFrom, int ColorTo)
+    {
+        final LinearLayout linearLayout= (LinearLayout) view;
+        ValueAnimator valueAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, ColorTo);
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener()
+        {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation)
+            {
+                linearLayout.setBackgroundColor((int) animation.getAnimatedValue());
+            }
+        });
+        valueAnimator.setDuration(1000);
+        valueAnimator.start();
     }
 }

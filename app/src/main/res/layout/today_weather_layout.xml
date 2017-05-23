@@ -8,8 +8,9 @@
                                     android:layout_marginTop="10dp"
                                     android:layout_marginBottom="5dp"
                                     app:cardElevation="5dp"
-                                    android:clickable="false"
+                                    android:clickable="true"
                                     android:foreground="?attr/selectableItemBackground"
+                                    android:id="@+id/main_card"
                                     >
     <LinearLayout
         android:layout_width="match_parent"
@@ -69,7 +70,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:background="@color/colorPrimary"
+            android:background="@color/fineColor"
+            android:id="@+id/top_card_layout"
             >
             <LinearLayout
                 android:layout_width="match_parent"

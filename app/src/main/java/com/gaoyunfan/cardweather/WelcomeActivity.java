@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import tool.PermissionUtil;
 
 /**
  * Created by Administrator on 2017/5/15.
@@ -31,10 +32,8 @@ public class WelcomeActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.welcome_layout);
         ButterKnife.bind(this);
-
         hideStatusBar();
-
-
+        PermissionUtil.getPermission(this);
         AssetManager mgr=getAssets();//得到AssetManager
         Typeface tf=Typeface.createFromAsset(mgr, "fonts/Pacifico.ttf");//根据路径得到Typeface
         engTxt.setTypeface(tf);//设置字体

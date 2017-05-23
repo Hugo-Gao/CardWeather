@@ -8,4 +8,13 @@
     <color name="colorCloudy">#8D95A1</color>
     <color name="colorSunny">#F5BE25</color>
     <color name="colorRainy">#457AD1</color>
+
+    <color name="frazeColor">#ADACA7</color> <!-- 0以下 -->
+    <color name="veryColdColor">#5BE7C4</color> <!-- 0到5 -->
+    <color name="coldColor">#4FC1E9</color> <!-- 5到10 -->
+    <color name="underFineColor">#9ED0E0</color> <!-- 10到15 -->
+    <color name="fineColor">#3F51B5</color> <!-- 15到20 -->
+    <color name="coolColor">#FFD464</color> <!-- 20到25 -->
+    <color name="hotColor">#F44336</color>  <!-- 25到30 -->
+    <color name="veryHotColor">#9F1E49</color> <!-- 30以上 -->
 </resources>

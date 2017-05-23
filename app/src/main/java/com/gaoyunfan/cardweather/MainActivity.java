@@ -1,24 +1,29 @@
 package com.gaoyunfan.cardweather;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -26,7 +31,12 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +56,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import tool.AnimationUtil;
 import tool.LocationUtil;
-import tool.PermissionUtil;
+import tool.RecyScrollListener;
 
 public class MainActivity extends Activity
 {
@@ -54,6 +64,7 @@ public class MainActivity extends Activity
     private LocationUtil locationUtil;
     private Location newLocation;
     private String cityName;
+    private String tempCityName;
     private List<PredictBean> preBeanList;
     private FutureCardAdapter adapter;
     private final String AppKey = "5525d200e35c443eb70948bc960141b3";
@@ -62,7 +73,9 @@ public class MainActivity extends Activity
     private final int GET_JSON = 1;
     private final int REMOVE_ALL = 2;
     private final int ADD_PRE_BEAN = 3;
-
+    private boolean fromLocal = true;
+    private MainBean overAllBean;
+    private JsonBean overAllJsonBean;
     private Handler handler = new Handler(new Handler.Callback()
     {
         @Override
@@ -74,30 +87,35 @@ public class MainActivity extends Activity
                     JsonBean jsonBean = (JsonBean) msg.obj;
                     if (jsonBean != null)
                     {
-                        MainBean bean = converToMainBean(jsonBean);
-                        preBeanList = convertToPreBeanList(jsonBean);
-                        reFreshTopCard(bean);
-                        reFreshPreCard(preBeanList);
+                        refreshLayout(jsonBean);
                     }
                     break;
                 case REMOVE_ALL:
                     adapter.removeAll();
                     break;
                 case ADD_PRE_BEAN:
-                    int index=msg.arg1;
+                    int index = msg.arg1;
                     List<PredictBean> list = (List<PredictBean>) msg.obj;
                     adapter.addItem(list.get(index));
-                    if (index == list.size() - 1)
+                    if (index == list.size() - 1&&!fromLocal)
                     {
                         swipeRefreshLayout.setRefreshing(false);
+
+                    }
+                    if (index == 1)
+                    {
+                        if (!fromLocal)
+                        {
+                            int fromColor = ((ColorDrawable) topLayout.getBackground()).getColor();
+                            int toColor = checkToColor();
+                            AnimationUtil.ColorChangeAnimation(topLayout, fromColor, toColor);
+                        }
                     }
                     break;
             }
             return false;
         }
     });
-
-
 
 
     @BindView(R.id.swipe_layout)
@@ -111,6 +129,22 @@ public class MainActivity extends Activity
 
     @BindView(R.id.title)
     TextView titleTxt;
+
+    @BindView(R.id.main_card)
+    CardView mainCard;
+
+    @OnClick(R.id.main_card)
+    public void cardClick(CardView cardView)
+    {
+        if (overAllBean != null && overAllJsonBean != null)
+        {
+            Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+            intent.putExtra("which",overAllBean.getWeatherInfo());
+            intent.putExtra("jsonBean", overAllJsonBean);
+            startActivity(intent);
+        }
+
+    }
 
     @OnClick(R.id.floatbutton)
     public void fabClick(FloatingActionButton fab)
@@ -139,6 +173,9 @@ public class MainActivity extends Activity
     @BindView(R.id.windspeed_txt)
     TextView todayWindSpeed;
 
+    @BindView(R.id.top_card_layout)
+    LinearLayout topLayout;
+
     @Nullable
     @BindView(R.id.future_time_txt)
     TextView futureTimeTxt;
@@ -163,7 +200,6 @@ public class MainActivity extends Activity
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         hideStatusBar();
-        PermissionUtil.getPermission(this);
         preBeanList = new ArrayList<>();
         locationUtil = new LocationUtil(this);
         adapter = new FutureCardAdapter(this, preBeanList);
@@ -173,18 +209,27 @@ public class MainActivity extends Activity
         recyclerView.getItemAnimator().setAddDuration(500);
         recyclerView.setAdapter(adapter);
         final Geocoder ge = new Geocoder(this);
-        getNowLocation(ge);
         gson = new Gson();
+        getNowLocation(ge);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
         {
             @Override
             public void onRefresh()
             {
+                if (cityName == null)
+                {
+                    Snackbar.make(titleTxt, "GPS暂未获取到你的位置,请稍后再试", Snackbar.LENGTH_SHORT).show();
+                    swipeRefreshLayout.setRefreshing(false);
+                    getNowLocation(ge);
+                    return;
+                }
                 getNewWeatherInfo();
             }
         });
+        recyclerView.addOnScrollListener(new RecyScrollListener(mainCard));
 
     }
+
 
     private void getNewWeatherInfo()
     {
@@ -221,14 +266,18 @@ public class MainActivity extends Activity
                         handler.sendMessage(message2);
                         JSONObject resultobject = jsonObject.getJSONObject("result");
                         JsonBean jsonBean = gson.fromJson(String.valueOf(resultobject), JsonBean.class);
-
+                        //序列化保存到本地
+                        saveJsonBean(jsonBean);
                         Message message = Message.obtain();
                         message.what = GET_JSON;
+                        fromLocal = false;
                         message.obj = jsonBean;
                         handler.sendMessage(message);
                     } else
                     {
                         Log.d("haha", "服务器错误");
+                        cityName = tempCityName;
+                        getNewWeatherInfo();
                     }
 
                 } catch (JSONException e)
@@ -240,54 +289,140 @@ public class MainActivity extends Activity
         });
     }
 
-    private void getNowLocation(final Geocoder ge)
+    /**
+     * 将jsonBean序列化保存到本地
+     *
+     * @param jsonBean
+     */
+    private void saveJsonBean(JsonBean jsonBean)
     {
-        swipeRefreshLayout.setRefreshing(true);
-        locationUtil.getLocation(new LocationListener()
+        FileOutputStream fos = null;
+        ObjectOutputStream oos = null;
+        try
         {
-            @Override
-            public void onLocationChanged(Location location)
+            File file = new File(Environment.getExternalStorageDirectory().toString()
+                    + "/" + "weatherbean.dat");
+            if (!file.exists())
             {
-                Log.d("location", "获得了" + location.toString());
-                newLocation = location;
+                file.createNewFile();
+            }
+            fos = new FileOutputStream(file.toString());
+            oos = new ObjectOutputStream(fos);
+            oos.writeObject(jsonBean);
+            Log.d("haha", "序列化保存成功");
+        } catch (Exception e)
+        {
+            Log.i("haha", e.toString());
+        } finally
+        {
+            try
+            {
+                if (oos != null)
+                    oos.close();
+                if (fos != null)
+                    fos.close();
+            } catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    /**
+     * 从本地读取序列化的jsonBean
+     *
+     * @return
+     */
+    private JsonBean getJsonFormLocal()
+    {
+        JsonBean jsonBean = null;
+        FileInputStream fis = null;
+        ObjectInputStream ois = null;
+        File file = new File(Environment.getExternalStorageDirectory().toString()
+                + "/" + "weatherbean.dat");
+        if (file.exists())
+        {
+            try
+            {
+                fis = new FileInputStream(file.toString());
+                ois = new ObjectInputStream(fis);
+                jsonBean = (JsonBean) ois.readObject();
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            } finally
+            {
                 try
                 {
-                    StringBuilder stringBuilder = new StringBuilder(ge.getFromLocation(location.getLatitude(),
-                            location.getLongitude(), 1).get(0).getSubLocality());//获取新都区
-                    stringBuilder = stringBuilder.deleteCharAt(stringBuilder.length() - 1);//裁剪为新都
-                    if (cityName!=null&&cityName.equals(stringBuilder.toString()))
+                    if (ois != null)
                     {
-                        return;
+                        ois.close();
                     }
-                    Log.d("haha", "不一样" + cityName + " and " + stringBuilder.toString());
-                    cityName = stringBuilder.toString();
-                    titleTxt.setText(cityName);
-                    getNewWeatherInfo();
+                    if (fis != null)
+                    {
+                        fis.close();
+                    }
                 } catch (IOException e)
                 {
                     e.printStackTrace();
                 }
-
             }
+        }
+        return jsonBean;
+    }
 
+    private void getNowLocation(final Geocoder ge)
+    {
+        swipeRefreshLayout.setRefreshing(true);
+        new Thread(new Runnable()
+        {
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras)
+            public void run()
+            {
+                JsonBean jsonBean = getJsonFormLocal();
+                if (jsonBean != null)
+                {
+                    Message message = Message.obtain();
+                    message.obj = jsonBean;
+                    message.what = GET_JSON;
+                    fromLocal = true;
+                    handler.sendMessage(message);
+                }
+            }
+        }).start();
+
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
             {
 
+                newLocation = locationUtil.getLocation();
+                try
+                {
+                    tempCityName = ge.getFromLocation(newLocation.getLatitude(), newLocation.getLongitude(), 1).get(0).getLocality();
+                    StringBuilder stringBuilder = new StringBuilder(ge.getFromLocation(newLocation.getLatitude(),
+                            newLocation.getLongitude(), 1).get(0).getSubLocality());//获取新都区
+                    stringBuilder = stringBuilder.deleteCharAt(stringBuilder.length() - 1);//裁剪为新都
+                    Log.d("location", "获得了" + stringBuilder.toString());
+                    if (cityName != null && (cityName.equals(stringBuilder.toString()) || cityName.equals(tempCityName)))
+                    {
+                        return;
+                    }
+                    Log.d("location", "不一样" + cityName + " and " + stringBuilder.toString());
+                    cityName = stringBuilder.toString();
+                    getNewWeatherInfo();
+                } catch (Exception e)
+                {
+                    e.printStackTrace();
+                    Log.d("haha", "获取地理位置出错");
+                }
+
             }
+        }).start();
 
-            @Override
-            public void onProviderEnabled(String provider)
-            {
 
-            }
-
-            @Override
-            public void onProviderDisabled(String provider)
-            {
-
-            }
-        });
     }
 
     /**
@@ -310,6 +445,7 @@ public class MainActivity extends Activity
 
     /**
      * 将jsonbean转换为今日信息所需要的MainBean
+     *
      * @param jsonBean
      * @return
      */
@@ -342,6 +478,7 @@ public class MainActivity extends Activity
 
     /**
      * 将jsonbean转换为RecyclerView需要的List
+     *
      * @param jsonBean
      * @return
      */
@@ -352,16 +489,16 @@ public class MainActivity extends Activity
         for (JsonBean.Item item : jsonBean.weather)
         {
             list.add(new PredictBean.Builder().date(item.date).
-                    weekDay("星期"+item.week).describe(item.weatherInfo.day.get(1)).
-                    Temp(item.weatherInfo.night.get(2)+"℃~"+item.weatherInfo.day.get(2)+"℃").build());
+                    weekDay("星期" + item.week).describe(item.weatherInfo.day.get(1)).
+                    Temp(item.weatherInfo.night.get(2) + "℃~" + item.weatherInfo.day.get(2) + "℃").build());
         }
         return list;
     }
 
 
-
     /**
      * 刷新今日天气信息
+     *
      * @param bean
      */
     private void reFreshTopCard(MainBean bean)
@@ -398,10 +535,12 @@ public class MainActivity extends Activity
         todayPM25.setText(bean.getPmValue());
         todayHumidity.setText(bean.getHumidity());
         todayWindSpeed.setText(bean.getWindSpeed());
+
     }
 
     /**
      * 刷新七天天气预报
+     *
      * @param preBeanList
      */
     private void reFreshPreCard(final List<PredictBean> preBeanList)
@@ -413,11 +552,11 @@ public class MainActivity extends Activity
             {
                 try
                 {
-                    for (int i=1;i<preBeanList.size();i++)
+                    for (int i = 1; i < preBeanList.size(); i++)
                     {
                         Message message = Message.obtain();
-                        message.what=ADD_PRE_BEAN;
-                        message.arg1= i;
+                        message.what = ADD_PRE_BEAN;
+                        message.arg1 = i;
                         message.obj = preBeanList;
                         handler.sendMessage(message);
                         Thread.sleep(300);
@@ -430,5 +569,49 @@ public class MainActivity extends Activity
         }).start();
     }
 
+    private void refreshLayout(JsonBean jsonBean)
+    {
+        overAllJsonBean=jsonBean;
+        MainBean bean = converToMainBean(jsonBean);
+        overAllBean=bean;
+        preBeanList = convertToPreBeanList(jsonBean);
+        reFreshTopCard(bean);
+        reFreshPreCard(preBeanList);
+        titleTxt.setText(cityName);
+    }
+
+    private int checkToColor()
+    {
+        StringBuilder text = new StringBuilder(todayTemp.getText());
+        text = text.deleteCharAt(text.length() - 1);
+        int temp = Integer.parseInt(text.toString());
+        int toColor = this.getResources().getColor(R.color.fineColor);
+        if (temp >= 30)
+        {
+            toColor = this.getResources().getColor(R.color.veryHotColor);
+        } else if (temp >= 25 && temp < 30)
+        {
+            toColor = this.getResources().getColor(R.color.hotColor);
+        } else if (temp >= 20 && temp < 25)
+        {
+            toColor = this.getResources().getColor(R.color.coolColor);
+        } else if (temp >= 15 && temp < 20)
+        {
+            toColor = this.getResources().getColor(R.color.fineColor);
+        } else if (temp >= 10 && temp < 15)
+        {
+            toColor = this.getResources().getColor(R.color.underFineColor);
+        } else if (temp >= 5 && temp < 10)
+        {
+            toColor = this.getResources().getColor(R.color.coldColor);
+        } else if (temp >= 0 && temp < 5)
+        {
+            toColor = this.getResources().getColor(R.color.veryColdColor);
+        } else if (temp < 0)
+        {
+            toColor = this.getResources().getColor(R.color.frazeColor);
+        }
+        return toColor;
+    }
 
 }

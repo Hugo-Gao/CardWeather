@@ -5,14 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#EBEFF1"
+    android:background="#FFFFFF"
     >
 
     <android.support.v7.widget.Toolbar
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:background="@color/colorPrimary"
-        android:elevation="10dp">
+        android:elevation="10dp"
+        >
         <Button
             android:layout_width="30dp"
             android:layout_height="30dp"

@@ -2,12 +2,15 @@ package Bean;
 
 import android.graphics.Bitmap;
 
+import java.io.Serializable;
+
 /**
  * Created by Administrator on 2017/5/18.
  */
-public class MainBean
+public class MainBean implements Serializable
 {
 
+    private static final long serialVersionUID = -6618662127173639129L;
     private String temp;//当前温度
     private Bitmap pic;//图片
     private String date;//日期
@@ -15,6 +18,7 @@ public class MainBean
     private String pmValue;//pm2.5
     private String humidity;//湿度
     private String windSpeed;//风速
+    private String weatherInfo;//对天气的描述：多云
 
     public void setPmValue(String pmValue)
     {
@@ -26,7 +30,6 @@ public class MainBean
         return weatherInfo;
     }
 
-    private String weatherInfo;//对天气的描述：多云
 
     public void setPic(Bitmap pic)
     {

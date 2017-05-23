@@ -2,7 +2,6 @@ package tool;
 
 import android.content.Context;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -40,11 +39,12 @@ public class LocationUtil
         Log.d(TAG, provider + "可用");
     }
 
-    public void getLocation(LocationListener locationListener)
+    public Location getLocation()
     {
+        Location location=null;
         if (provider != null)
         {
-            Location location = locationManager.getLastKnownLocation(provider);
+             location = locationManager.getLastKnownLocation(provider);
             if (location != null)
             {
                 String string = "纬度为：" + location.getLatitude() + ",经度为："
@@ -52,8 +52,7 @@ public class LocationUtil
                 Log.d("location", string);
             }
         }
-
-        locationManager.requestLocationUpdates(provider,2000,2,locationListener);
+        return location;
     }
 
 

@@ -20,6 +20,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".DetailActivity"/>
     </application>
 
     <!-- 连接互联网 Internet 权限 -->
