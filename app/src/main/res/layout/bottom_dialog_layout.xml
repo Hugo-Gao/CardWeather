@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="210dp"
+              android:background="@drawable/shape_dialog"
+    >
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:text=" 选择城市 "
+        android:id="@+id/choose_city"
+        android:textColor="#666666"
+        android:textSize="14sp"/>
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:gravity="center_vertical"
+            android:padding="16dp"
+            android:text=" 收藏此城市 "
+            android:id="@+id/collect_this_city"
+            android:textColor="#666666"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:gravity="center_vertical"
+            android:id="@+id/city_collections"
+            android:padding="16dp"
+            android:text=" 城市收藏夹 "
+            android:textColor="#666666"
+            android:textSize="14sp"/>
+
+</LinearLayout>

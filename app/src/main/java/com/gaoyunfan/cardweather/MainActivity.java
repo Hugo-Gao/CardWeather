@@ -1,10 +1,15 @@
 package com.gaoyunfan.cardweather;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
@@ -21,7 +26,11 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -96,6 +105,10 @@ public class MainActivity extends Activity
                 case ADD_PRE_BEAN:
                     int index = msg.arg1;
                     List<PredictBean> list = (List<PredictBean>) msg.obj;
+                    if(list.size()==0)
+                    {
+                        break;
+                    }
                     adapter.addItem(list.get(index));
                     if (index == list.size() - 1&&!fromLocal)
                     {
@@ -141,7 +154,16 @@ public class MainActivity extends Activity
             Intent intent = new Intent(MainActivity.this, DetailActivity.class);
             intent.putExtra("which",overAllBean.getWeatherInfo());
             intent.putExtra("jsonBean", overAllJsonBean);
-            startActivity(intent);
+            if(OverLollipop())
+            {
+                ActivityOptions options = ActivityOptions
+                        .makeSceneTransitionAnimation(MainActivity.this,
+                                mainCard, mainCard.getTransitionName());
+                startActivityForResult(intent, 1, options.toBundle());
+            }else
+            {
+                startActivity(intent);
+            }
         }
 
     }
@@ -150,7 +172,10 @@ public class MainActivity extends Activity
     public void fabClick(FloatingActionButton fab)
     {
         AnimationUtil.FABRotate(fab);
+        showBottomDialog();
     }
+
+
 
     @BindView(R.id.weekday)
     TextView todayWeekDay;
@@ -200,6 +225,7 @@ public class MainActivity extends Activity
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         hideStatusBar();
+
         preBeanList = new ArrayList<>();
         locationUtil = new LocationUtil(this);
         adapter = new FutureCardAdapter(this, preBeanList);
@@ -412,6 +438,7 @@ public class MainActivity extends Activity
                     }
                     Log.d("location", "不一样" + cityName + " and " + stringBuilder.toString());
                     cityName = stringBuilder.toString();
+                    //cityName = "成都";
                     getNewWeatherInfo();
                 } catch (Exception e)
                 {
@@ -612,6 +639,55 @@ public class MainActivity extends Activity
             toColor = this.getResources().getColor(R.color.frazeColor);
         }
         return toColor;
+    }
+
+    private void showBottomDialog()
+    {
+        Dialog bottomDialog = new Dialog(this, R.style.BottomDialog);
+        View contentView = LayoutInflater.from(this).inflate(R.layout.bottom_dialog_layout, null);
+        bottomDialog.setContentView(contentView);
+
+        TextView chooseCityTv = (TextView) bottomDialog.findViewById(R.id.choose_city);
+        Drawable chooseCity = getResources().getDrawable(R.mipmap.choosecity);
+        chooseCity.setBounds(0, 0, 180, 180);
+        chooseCityTv.setCompoundDrawables(chooseCity, null, null, null);//只放左边
+
+        TextView collectCityTv = (TextView) bottomDialog.findViewById(R.id.collect_this_city);
+        Drawable collectCity = getResources().getDrawable(R.mipmap.collect);
+        collectCity.setBounds(0, 0, 180, 180);
+        collectCityTv.setCompoundDrawables(collectCity, null, null, null);
+
+        TextView cityCollectionsTv = (TextView) bottomDialog.findViewById(R.id.city_collections);
+        Drawable cityCollections = getResources().getDrawable(R.mipmap.colletions);
+        cityCollections.setBounds(0, 0, 180, 180);
+        cityCollectionsTv.setCompoundDrawables(cityCollections, null, null, null);
+
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) contentView.getLayoutParams();
+        params.width = getResources().getDisplayMetrics().widthPixels - dp2px(this, 16f);
+        params.bottomMargin = dp2px(this, 8f);
+        contentView.setLayoutParams(params);
+        bottomDialog.getWindow().setGravity(Gravity.BOTTOM);
+        bottomDialog.getWindow().setWindowAnimations(R.style.BottomDialog_Animation);
+        bottomDialog.setCanceledOnTouchOutside(true);
+        bottomDialog.setOnCancelListener(new DialogInterface.OnCancelListener()
+        {
+            @Override
+            public void onCancel(DialogInterface dialog)
+            {
+                AnimationUtil.FABRotate(fab);
+            }
+        });
+        bottomDialog.show();
+
+    }
+
+    private  boolean OverLollipop()
+    {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1;
+    }
+    public static int dp2px(Context context, float dpVal) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal,
+                context.getResources().getDisplayMetrics());
     }
 
 }

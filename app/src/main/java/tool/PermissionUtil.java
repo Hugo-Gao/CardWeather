@@ -20,6 +20,7 @@ public class PermissionUtil
             "android.permission.ACCESS_FINE_LOCATION", "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE"};
     private static final int permsRequestCode = 200;
+    private Context context;
 
     public static void getPermission(Context context)
     {
@@ -28,6 +29,12 @@ public class PermissionUtil
             requestPermissions((Activity) context, perms, permsRequestCode);
         }
     }
+
+    public static boolean hasPermission(Context context)
+    {
+        return hasPermission(perms, context);
+    }
+
 
     private static boolean hasPermission(String[] permissions, Context context)
     {

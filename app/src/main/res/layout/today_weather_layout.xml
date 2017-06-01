@@ -11,6 +11,7 @@
                                     android:clickable="true"
                                     android:foreground="?attr/selectableItemBackground"
                                     android:id="@+id/main_card"
+                                    android:transitionName="trView"
                                     >
     <LinearLayout
         android:layout_width="match_parent"

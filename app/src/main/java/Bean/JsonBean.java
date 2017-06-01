@@ -134,6 +134,7 @@ public class JsonBean implements Serializable
                         ", xiche=" + xiche +
                         ", wuran=" + wuran +
                         ", chuanyi=" + chuanyi +
+                        ", ziwaixian=" + ziwaixian +
                         '}';
             }
 
@@ -143,6 +144,7 @@ public class JsonBean implements Serializable
             public List<String> xiche;
             public List<String> wuran;
             public List<String> chuanyi;
+            public List<String> ziwaixian;
         }
     }
 

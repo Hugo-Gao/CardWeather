@@ -33,8 +33,8 @@ public class WelcomeActivity extends Activity
         setContentView(R.layout.welcome_layout);
         ButterKnife.bind(this);
         hideStatusBar();
-        PermissionUtil.getPermission(this);
         AssetManager mgr=getAssets();//得到AssetManager
+        PermissionUtil.getPermission(this);
         Typeface tf=Typeface.createFromAsset(mgr, "fonts/Pacifico.ttf");//根据路径得到Typeface
         engTxt.setTypeface(tf);//设置字体
         new Thread(new Runnable()
@@ -42,16 +42,24 @@ public class WelcomeActivity extends Activity
             @Override
             public void run()
             {
-                try
+                while (true)
                 {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e)
-                {
-                    e.printStackTrace();
+                    try
+                    {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    if (PermissionUtil.hasPermission(WelcomeActivity.this))
+                    {
+                        Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        finishAfterTransition();
+                        break;
+                    }
                 }
-                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
-                startActivity(intent);
-                finishAfterTransition();
+
             }
         }).start();
 
