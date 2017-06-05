@@ -114,7 +114,11 @@ public class ChartView extends View
         }
         Arrays.sort(dataInt);
         int middle = (dataInt[0] + dataInt[6]) / 2;
-        int scale = (dataInt[6] - dataInt[0]) / 5;//将y轴分为6份
+        int scale = Math.abs(dataInt[6] - dataInt[0]) / 5;//将y轴分为6份
+        if(scale==0)
+        {
+            scale++;
+        }
         List<String> yText = new ArrayList<>();
         yText.add((middle - 2 * scale) + "");
         yText.add((middle - scale) + "");

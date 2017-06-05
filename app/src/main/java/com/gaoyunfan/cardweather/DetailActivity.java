@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -85,8 +86,7 @@ public class DetailActivity extends Activity
 
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
-        //setLayoutView(intent);
-        setContentView(R.layout.detail_layout_sunny);
+        setLayoutView(intent);
         ButterKnife.bind(this);
         JsonBean jsonBean = (JsonBean) intent.getSerializableExtra("jsonBean");
         tempBeanList = new ArrayList<>();
@@ -104,22 +104,22 @@ public class DetailActivity extends Activity
 
     private void initialSug(JsonBean jsonBean)
     {
-        airConditionDes.setText("空调建议:"+jsonBean.lifeInfo.suggesstInfo.kongtiao.get(0));
+        airConditionDes.setText("空调建议:" + jsonBean.lifeInfo.suggesstInfo.kongtiao.get(0));
         airConditionSug.setText(jsonBean.lifeInfo.suggesstInfo.kongtiao.get(1));
 
-        sportDes.setText("运动建议:"+jsonBean.lifeInfo.suggesstInfo.yundong.get(0));
+        sportDes.setText("运动建议:" + jsonBean.lifeInfo.suggesstInfo.yundong.get(0));
         sportSug.setText(jsonBean.lifeInfo.suggesstInfo.yundong.get(1));
 
-        raysDes.setText("紫外线强度:"+jsonBean.lifeInfo.suggesstInfo.ziwaixian.get(0));
+        raysDes.setText("紫外线强度:" + jsonBean.lifeInfo.suggesstInfo.ziwaixian.get(0));
         raysSug.setText(jsonBean.lifeInfo.suggesstInfo.ziwaixian.get(1));
 
-        sickDes.setText("感冒状况:"+jsonBean.lifeInfo.suggesstInfo.ganmao.get(0));
+        sickDes.setText("感冒状况:" + jsonBean.lifeInfo.suggesstInfo.ganmao.get(0));
         sickSug.setText(jsonBean.lifeInfo.suggesstInfo.ganmao.get(1));
 
-        washCarDes.setText("洗车建议:"+jsonBean.lifeInfo.suggesstInfo.xiche.get(0));
+        washCarDes.setText("洗车建议:" + jsonBean.lifeInfo.suggesstInfo.xiche.get(0));
         washCarSug.setText(jsonBean.lifeInfo.suggesstInfo.xiche.get(1));
 
-        wearDes.setText("穿衣建议:"+jsonBean.lifeInfo.suggesstInfo.chuanyi.get(0));
+        wearDes.setText("穿衣建议:" + jsonBean.lifeInfo.suggesstInfo.chuanyi.get(0));
         wearSug.setText(jsonBean.lifeInfo.suggesstInfo.chuanyi.get(1));
     }
 
@@ -187,6 +187,7 @@ public class DetailActivity extends Activity
     {
         chartView.setTitle("七日最高温度折线图");
         chartView.setxLabel(jsonBean);
+        Log.d("temp", tempBeanList.toString());
         chartView.setData(tempBeanList);
         chartView.fresh();
     }
@@ -210,13 +211,22 @@ public class DetailActivity extends Activity
 
     private void setLayoutView(Intent intent)
     {
-        if (intent.getStringExtra("which").equals("多云"))
+        if (intent.getStringExtra("which").contains("多云") || intent.getStringExtra("which").contains("阴"))
         {
-            setContentView(R.layout.detail_layout_sunny);
-
+            setContentView(R.layout.detail_layout_cloudy);
+            return;
+        } else if (intent.getStringExtra("which").contains("雨"))
+        {
+            setContentView(R.layout.detail_layout_rainy);
+            return;
+        } else if (intent.getStringExtra("which").contains("雪"))
+        {
+            setContentView(R.layout.detail_layout_snowy);
+            return;
         } else
         {
-            setContentView(R.layout.today_weather_layout);
+            setContentView(R.layout.detail_layout_sunny);
+            return;
         }
     }
 

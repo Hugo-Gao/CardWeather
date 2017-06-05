@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal"
+    >
+    <TextView
+        android:id="@+id/city_name"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="false"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:text=" 新都市 "
+        android:textColor="#666666"
+        android:textSize="14sp"/>
+
+</LinearLayout>

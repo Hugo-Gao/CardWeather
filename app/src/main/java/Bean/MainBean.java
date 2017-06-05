@@ -73,7 +73,6 @@ public class MainBean implements Serializable
     }
 
 
-
     @Override
     public String toString()
     {
@@ -94,13 +93,14 @@ public class MainBean implements Serializable
         this.pic = builder.pic;
         this.date = builder.date;
         this.time = builder.time;
-        this.pmValue =builder. pmValue;
+        this.pmValue = builder.pmValue;
         this.humidity = builder.humidity;
         this.windSpeed = builder.windSpeed;
         this.weatherInfo = builder.weatherInfo;
     }
 
-    public static class Builder{
+    public static class Builder
+    {
         private String temp;
         private Bitmap pic;
         private String date;
@@ -110,46 +110,65 @@ public class MainBean implements Serializable
         private String windSpeed;
         private String weatherInfo;//对天气的描述：多云
 
-        public Builder(){
+        public Builder()
+        {
         }
-        public MainBean build(){
+
+        public MainBean build()
+        {
             return new MainBean(this);
         }
-        public Builder temp(String val){
-            this.temp=val;
+
+        public Builder temp(String val)
+        {
+            this.temp = val;
             return this;
         }
 
         public Builder weatherInfo(String val)
         {
-            this.weatherInfo=val;
+            this.weatherInfo = val;
             return this;
         }
 
-        public Builder pic(Bitmap val){
-            this.pic=val;
+        public Builder pic(Bitmap val)
+        {
+            this.pic = val;
             return this;
         }
-        public Builder date(String val){
-            this.date=val;
+
+        public Builder date(String val)
+        {
+            this.date = val;
             return this;
         }
-        public Builder time(String val){
-            this.time=val;
+
+        public Builder time(String val)
+        {
+            this.time = val;
             return this;
         }
-        public Builder pmValue(String val){
-            this.pmValue=val;
+
+        public Builder pmValue(String val)
+        {
+            this.pmValue = val;
             return this;
         }
-        public Builder humidity(String val){
-            this.humidity=val;
+
+        public Builder humidity(String val)
+        {
+            this.humidity = val;
             return this;
         }
-        public Builder windSpeed(String val){
-            this.windSpeed=val;
+
+        public Builder windSpeed(String val)
+        {
+            this.windSpeed = val;
             return this;
         }
 
     }
-}
+
+
+
+    }

@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
           package="com.gaoyunfan.cardweather">
 
     <application
+        tools:replace="android:label"
         android:allowBackup="true"
         android:icon="@mipmap/logo"
-        android:label="@string/app_ch_name"
+        android:label="卡片天气"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 

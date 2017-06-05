@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="250dp"
+              android:background="@drawable/shape_dialog"
+              android:orientation="vertical"
+    >
+
+    <TextView
+        android:id="@+id/collection_title"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text=" 您收藏的城市如下，左右滑动删除 "
+        android:textColor="#FF8D68"
+        android:textSize="17sp"/>
+
+<android.support.v7.widget.RecyclerView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/city_collect_recycler">
+
+</android.support.v7.widget.RecyclerView>
+
+</LinearLayout>

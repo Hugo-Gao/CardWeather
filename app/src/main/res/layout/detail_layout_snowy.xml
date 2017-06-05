@@ -18,8 +18,8 @@
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="520dp"
-                android:transitionName="trView"
-                android:background="#5E616A">
+                android:background="#EAE7ED"
+                android:transitionName="trView">
 
                 <TextView
                     android:id="@+id/temp_in_pic"
@@ -28,7 +28,7 @@
                     android:layout_gravity="center"
                     android:layout_marginTop="40dp"
                     android:text="**°"
-                    android:textColor="#ffff"
+                    android:textColor="#000000"
                     android:textSize="100sp"/>
 
                 <TextView
@@ -37,8 +37,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="180dp"
-                    android:text="Cloudy"
-                    android:textColor="#ffff"
+                    android:text="Rainy"
+                    android:textColor="#000000"
                     android:textSize="30sp"/>
 
                 <ImageView
@@ -46,7 +46,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="40dp"
-                    android:src="@mipmap/cloudy_logo"/>
+                    android:src="@mipmap/snowy_logo"/>
 
 
             </FrameLayout>

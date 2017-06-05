@@ -33,4 +33,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.google.code.gson:gson:2.8.0'
     compile 'com.squareup.okhttp3:okhttp:3.8.0'
+    compile 'liji.library.dev:citypickerview:1.1.0'
+    compile 'com.github.GrenderG:Toasty:1.2.5'
 }

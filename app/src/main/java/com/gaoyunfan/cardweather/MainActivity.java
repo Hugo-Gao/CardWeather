@@ -19,23 +19,26 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.lljjcoder.citypickerview.widget.CityPicker;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,15 +51,19 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import Bean.JsonBean;
 import Bean.MainBean;
 import Bean.PredictBean;
+import adapter.CityCollectorAdapter;
 import adapter.FutureCardAdapter;
+import adapter.MyCallBack;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import es.dmoral.toasty.Toasty;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -66,6 +73,7 @@ import okhttp3.Response;
 import tool.AnimationUtil;
 import tool.LocationUtil;
 import tool.RecyScrollListener;
+import tool.SPUtil;
 
 public class MainActivity extends Activity
 {
@@ -105,12 +113,12 @@ public class MainActivity extends Activity
                 case ADD_PRE_BEAN:
                     int index = msg.arg1;
                     List<PredictBean> list = (List<PredictBean>) msg.obj;
-                    if(list.size()==0)
+                    if (list.size() == 0)
                     {
                         break;
                     }
                     adapter.addItem(list.get(index));
-                    if (index == list.size() - 1&&!fromLocal)
+                    if (index == list.size() - 1 && !fromLocal)
                     {
                         swipeRefreshLayout.setRefreshing(false);
 
@@ -152,15 +160,15 @@ public class MainActivity extends Activity
         if (overAllBean != null && overAllJsonBean != null)
         {
             Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-            intent.putExtra("which",overAllBean.getWeatherInfo());
+            intent.putExtra("which", overAllBean.getWeatherInfo());
             intent.putExtra("jsonBean", overAllJsonBean);
-            if(OverLollipop())
+            if (OverLollipop())
             {
                 ActivityOptions options = ActivityOptions
                         .makeSceneTransitionAnimation(MainActivity.this,
                                 mainCard, mainCard.getTransitionName());
                 startActivityForResult(intent, 1, options.toBundle());
-            }else
+            } else
             {
                 startActivity(intent);
             }
@@ -173,9 +181,19 @@ public class MainActivity extends Activity
     {
         AnimationUtil.FABRotate(fab);
         showBottomDialog();
+
+
     }
 
-
+    @OnClick(R.id.get_local)
+    public void localClick(Button button)
+    {
+        AnimationUtil.ConfirmAndBigger(button);
+        cityName = null;
+        tempCityName = null;
+        final Geocoder ge = new Geocoder(this);
+        getNowLocation(ge);
+    }
 
     @BindView(R.id.weekday)
     TextView todayWeekDay;
@@ -236,7 +254,17 @@ public class MainActivity extends Activity
         recyclerView.setAdapter(adapter);
         final Geocoder ge = new Geocoder(this);
         gson = new Gson();
-        getNowLocation(ge);
+        if (SPUtil.GetInitialCity(this) != null)
+        {
+            cityName = SPUtil.GetInitialCity(this);
+            Log.d("haha", "获取到默认城市" + cityName);
+            swipeRefreshLayout.setRefreshing(true);
+            getNewWeatherInfo();
+        } else
+        {
+            Log.d("haha", "没有获取到默认城市");
+            getNowLocation(ge);
+        }
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
         {
             @Override
@@ -244,7 +272,6 @@ public class MainActivity extends Activity
             {
                 if (cityName == null)
                 {
-                    Snackbar.make(titleTxt, "GPS暂未获取到你的位置,请稍后再试", Snackbar.LENGTH_SHORT).show();
                     swipeRefreshLayout.setRefreshing(false);
                     getNowLocation(ge);
                     return;
@@ -252,6 +279,7 @@ public class MainActivity extends Activity
                 getNewWeatherInfo();
             }
         });
+
         recyclerView.addOnScrollListener(new RecyScrollListener(mainCard));
 
     }
@@ -259,6 +287,7 @@ public class MainActivity extends Activity
 
     private void getNewWeatherInfo()
     {
+        Log.d("haha", "进入getNewWeatherInfo");
         OkHttpClient mClient = new OkHttpClient.Builder().readTimeout(2, TimeUnit.SECONDS).
                 writeTimeout(2, TimeUnit.SECONDS)
                 .connectTimeout(2, TimeUnit.SECONDS).build();
@@ -274,6 +303,15 @@ public class MainActivity extends Activity
             public void onFailure(Call call, IOException e)
             {
                 Log.d("haha", "获取数据失败");
+                runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Toasty.error(MainActivity.this, "服务器未连接,请下拉刷新重试", Toast.LENGTH_SHORT, true).show();
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                });
             }
 
             @Override
@@ -301,7 +339,7 @@ public class MainActivity extends Activity
                         handler.sendMessage(message);
                     } else
                     {
-                        Log.d("haha", "服务器错误");
+                        Log.d("haha", "重新发送网络请求");
                         cityName = tempCityName;
                         getNewWeatherInfo();
                     }
@@ -438,12 +476,20 @@ public class MainActivity extends Activity
                     }
                     Log.d("location", "不一样" + cityName + " and " + stringBuilder.toString());
                     cityName = stringBuilder.toString();
-                    //cityName = "成都";
                     getNewWeatherInfo();
                 } catch (Exception e)
                 {
                     e.printStackTrace();
                     Log.d("haha", "获取地理位置出错");
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Toasty.error(MainActivity.this, "未获取到你的位置,请检查网络连接", Toast.LENGTH_SHORT, true).show();
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
                 }
 
             }
@@ -598,9 +644,9 @@ public class MainActivity extends Activity
 
     private void refreshLayout(JsonBean jsonBean)
     {
-        overAllJsonBean=jsonBean;
+        overAllJsonBean = jsonBean;
         MainBean bean = converToMainBean(jsonBean);
-        overAllBean=bean;
+        overAllBean = bean;
         preBeanList = convertToPreBeanList(jsonBean);
         reFreshTopCard(bean);
         reFreshPreCard(preBeanList);
@@ -643,24 +689,31 @@ public class MainActivity extends Activity
 
     private void showBottomDialog()
     {
-        Dialog bottomDialog = new Dialog(this, R.style.BottomDialog);
+        final Dialog bottomDialog = new Dialog(this, R.style.BottomDialog);
         View contentView = LayoutInflater.from(this).inflate(R.layout.bottom_dialog_layout, null);
         bottomDialog.setContentView(contentView);
 
         TextView chooseCityTv = (TextView) bottomDialog.findViewById(R.id.choose_city);
-        Drawable chooseCity = getResources().getDrawable(R.mipmap.choosecity);
-        chooseCity.setBounds(0, 0, 180, 180);
+        final Drawable chooseCity = getResources().getDrawable(R.mipmap.choosecity);
+        chooseCity.setBounds(0, 0, dp2px(this,50f), dp2px(this,50f));
         chooseCityTv.setCompoundDrawables(chooseCity, null, null, null);//只放左边
 
         TextView collectCityTv = (TextView) bottomDialog.findViewById(R.id.collect_this_city);
-        Drawable collectCity = getResources().getDrawable(R.mipmap.collect);
-        collectCity.setBounds(0, 0, 180, 180);
+        final Drawable collectCity = getResources().getDrawable(R.mipmap.collect);
+        collectCity.setBounds(0, 0, dp2px(this,50f), dp2px(this,50f));
         collectCityTv.setCompoundDrawables(collectCity, null, null, null);
 
         TextView cityCollectionsTv = (TextView) bottomDialog.findViewById(R.id.city_collections);
-        Drawable cityCollections = getResources().getDrawable(R.mipmap.colletions);
-        cityCollections.setBounds(0, 0, 180, 180);
+        final Drawable cityCollections = getResources().getDrawable(R.mipmap.colletions);
+        cityCollections.setBounds(0, 0, dp2px(this,50f), dp2px(this,50f));
         cityCollectionsTv.setCompoundDrawables(cityCollections, null, null, null);
+
+        final TextView initialCityTv = (TextView) bottomDialog.findViewById(R.id.city_initial);
+        initialCityTv.setText(" 设置" + cityName + "为默认城市 ");
+        Drawable initialPic = getResources().getDrawable(R.mipmap.initial);
+        initialPic.setBounds(0, 0, dp2px(this,50f), dp2px(this,50f));
+        initialCityTv.setCompoundDrawables(initialPic, null, null, null);
+
 
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) contentView.getLayoutParams();
         params.width = getResources().getDisplayMetrics().widthPixels - dp2px(this, 16f);
@@ -669,23 +722,195 @@ public class MainActivity extends Activity
         bottomDialog.getWindow().setGravity(Gravity.BOTTOM);
         bottomDialog.getWindow().setWindowAnimations(R.style.BottomDialog_Animation);
         bottomDialog.setCanceledOnTouchOutside(true);
+        bottomDialog.show();
         bottomDialog.setOnCancelListener(new DialogInterface.OnCancelListener()
         {
             @Override
             public void onCancel(DialogInterface dialog)
             {
+                bottomDialog.dismiss();
+            }
+        });
+        bottomDialog.setOnDismissListener(new DialogInterface.OnDismissListener()
+        {
+            @Override
+            public void onDismiss(DialogInterface dialog)
+            {
                 AnimationUtil.FABRotate(fab);
             }
         });
-        bottomDialog.show();
+        chooseCityTv.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                bottomDialog.dismiss();
+                CityPicker cityPicker = new CityPicker.Builder(MainActivity.this)
+                        .textSize(20)
+                        .title("地址选择")
+                        .backgroundPop(0xa0000000)
+                        .titleBackgroundColor("#FFFFFF")
+                        .titleTextColor("#000000")
+                        .confirTextColor("#000000")
+                        .cancelTextColor("#000000")
+                        .province("四川省")
+                        .city("成都市")
+                        .district("新都区")
+                        .textColor(Color.parseColor("#000000"))
+                        .provinceCyclic(false)
+                        .cityCyclic(false)
+                        .districtCyclic(false)
+                        .visibleItemsCount(7)
+                        .itemPadding(10)
+                        .onlyShowProvinceAndCity(false)
+                        .build();
+                cityPicker.show();
 
+
+                //监听方法，获取选择结果
+                cityPicker.setOnCityItemClickListener(new CityPicker.OnCityItemClickListener()
+                {
+                    @Override
+                    public void onSelected(String... citySelected)
+                    {
+                        //省份
+                        String province = citySelected[0];
+                        //城市
+                        String city = citySelected[1];
+                        //区县（如果设定了两级联动，那么该项返回空）
+                        String district = citySelected[2];
+                        Log.d("haha", "选择了" + province + " " + city + " " + district);
+                        if ((district.charAt(district.length() - 1) == '区' || district.charAt(district.length() - 1) == '县') && district.length() > 2)
+                        {
+                            StringBuilder cityNameBuilder = new StringBuilder(district);
+                            cityName = cityNameBuilder.substring(0, cityNameBuilder.length() - 1);
+                        } else
+                        {
+                            cityName = district;
+                        }
+                        tempCityName = city;
+                        getNewWeatherInfo();
+                        swipeRefreshLayout.setRefreshing(true);
+                    }
+
+                    @Override
+                    public void onCancel()
+                    {
+                    }
+                });
+            }
+        });
+
+        initialCityTv.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                bottomDialog.dismiss();
+                String target = (cityName != null ? cityName : tempCityName);
+                if (target != null)
+                {
+                    SPUtil.SaveInitialCity(MainActivity.this, target);
+                    Toasty.success(MainActivity.this, "设置" + target + "为默认城市成功", Toast.LENGTH_SHORT, true).show();
+                } else
+                {
+                    Toasty.error(MainActivity.this, "对不起，你还没有添加当前城市", Toast.LENGTH_SHORT, true).show();
+                }
+            }
+        });
+
+        collectCityTv.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                bottomDialog.dismiss();
+                String target = (cityName != null ? cityName : tempCityName);
+                if (target != null)
+                {
+                    SPUtil.SaveStarCities(MainActivity.this, target);
+                    Toasty.success(MainActivity.this, "收藏" + target + "成功", Toast.LENGTH_SHORT, true).show();
+                } else
+                {
+                    Toasty.error(MainActivity.this, "对不起，你还没有添加当前城市", Toast.LENGTH_SHORT, true).show();
+                }
+            }
+        });
+
+        cityCollectionsTv.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                bottomDialog.dismiss();
+                Set<String> citySet = SPUtil.GetStarCities(MainActivity.this);
+                final Dialog collectionsDialog = new Dialog(MainActivity.this, R.style.BottomDialog);
+                View contentView2 = LayoutInflater.from(MainActivity.this).inflate(R.layout.city_collect_layout, null);
+                collectionsDialog.setContentView(contentView2);
+
+                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) contentView2.getLayoutParams();
+                params.width = getResources().getDisplayMetrics().widthPixels - dp2px(MainActivity.this, 16f);
+                params.height = dp2px(MainActivity.this, 300f);
+                params.bottomMargin = dp2px(MainActivity.this, 8f);
+                contentView2.setLayoutParams(params);
+                collectionsDialog.getWindow().setGravity(Gravity.BOTTOM);
+                collectionsDialog.getWindow().setWindowAnimations(R.style.BottomDialog_Animation);
+                collectionsDialog.setCanceledOnTouchOutside(true);
+                collectionsDialog.show();
+                collectionsDialog.setOnCancelListener(new DialogInterface.OnCancelListener()
+                {
+                    @Override
+                    public void onCancel(DialogInterface dialog)
+                    {
+                        collectionsDialog.dismiss();
+                    }
+                });
+                collectionsDialog.setOnDismissListener(new DialogInterface.OnDismissListener()
+                {
+                    @Override
+                    public void onDismiss(DialogInterface dialog)
+                    {
+                        AnimationUtil.FABRotateToNormal(fab);
+                    }
+                });
+                RecyclerView recyclerView = (RecyclerView) collectionsDialog.findViewById(R.id.city_collect_recycler);
+                TextView titleTv = (TextView) collectionsDialog.findViewById(R.id.collection_title);
+                List<String> list = new ArrayList<>(citySet);
+                if (list.size() == 0)
+                {
+                    titleTv.setText("您还没有收藏城市,请先选择城市收藏");
+                }
+                final CityCollectorAdapter adapter = new CityCollectorAdapter(MainActivity.this, list);
+                ItemTouchHelper helper = new ItemTouchHelper(new MyCallBack(adapter));
+                helper.attachToRecyclerView(recyclerView);
+                recyclerView.setAdapter(adapter);
+                adapter.setOnItemClickListener(new CityCollectorAdapter.OnItemClickListener()
+                {
+                    @Override
+                    public void onItemClick(View view, String name)
+                    {
+                        cityName = name;
+                        tempCityName = null;
+                        getNewWeatherInfo();
+                        swipeRefreshLayout.setRefreshing(true);
+                        collectionsDialog.dismiss();
+                    }
+                });
+                recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+                collectionsDialog.show();
+
+
+            }
+        });
     }
 
-    private  boolean OverLollipop()
+    private boolean OverLollipop()
     {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1;
     }
-    public static int dp2px(Context context, float dpVal) {
+
+    public static int dp2px(Context context, float dpVal)
+    {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal,
                 context.getResources().getDisplayMetrics());
     }
