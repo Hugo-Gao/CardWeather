@@ -243,7 +243,7 @@ public class MainActivity extends Activity
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         hideStatusBar();
-
+        WelcomeActivity.instance.finish();
         preBeanList = new ArrayList<>();
         locationUtil = new LocationUtil(this);
         adapter = new FutureCardAdapter(this, preBeanList);
@@ -289,8 +289,8 @@ public class MainActivity extends Activity
     {
         Log.d("haha", "进入getNewWeatherInfo");
         OkHttpClient mClient = new OkHttpClient.Builder().readTimeout(2, TimeUnit.SECONDS).
-                writeTimeout(2, TimeUnit.SECONDS)
-                .connectTimeout(2, TimeUnit.SECONDS).build();
+                writeTimeout(10, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS).build();
 
         FormBody.Builder formBuilder = new FormBody.Builder();
         formBuilder.add("key", AppKey);

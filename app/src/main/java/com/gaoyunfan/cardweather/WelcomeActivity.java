@@ -21,6 +21,8 @@ import tool.PermissionUtil;
 public class WelcomeActivity extends Activity
 {
 
+    static Activity instance ;
+
     @BindView(R.id.wel_eng_txt)
     TextView engTxt;
 
@@ -33,6 +35,7 @@ public class WelcomeActivity extends Activity
         setContentView(R.layout.welcome_layout);
         ButterKnife.bind(this);
         hideStatusBar();
+        instance=this;
         AssetManager mgr=getAssets();//得到AssetManager
         PermissionUtil.getPermission(this);
         Typeface tf=Typeface.createFromAsset(mgr, "fonts/Pacifico.ttf");//根据路径得到Typeface
@@ -55,7 +58,7 @@ public class WelcomeActivity extends Activity
                     {
                         Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
                         startActivity(intent);
-                        finishAfterTransition();
+                        //finishAfterTransition();
                         break;
                     }
                 }

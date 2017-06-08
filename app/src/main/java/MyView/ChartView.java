@@ -36,10 +36,13 @@ public class ChartView extends View
     private List<String> yLable;//X轴坐标值
     private List<TempBean> tempList;
     private final String TAG = "Chart";
-    private String title = "七日最高温度折线图";
-    private String[] mDataLineColors;
-    private float[][] mDataCoords = new float[7][2];
-    private Paint mDataLinePaint;  //数据画笔
+    private String title = "七日温度折线图";
+    private String[] mMaxDataLineColors;
+    private String[] mMinDataLineColors;
+    private float[][] mMaxDataCoords = new float[7][2];
+    private float[][] mMinDataCoords=new float[7][2];
+    private Paint mMaxDataLinePaint;  //数据画笔
+    private Paint mMinDataLinePaint;
     private Paint mScaleLinePaint; //坐标画笔
     private Paint mScaleValuePaint;//图表刻度值画笔
     private Paint mBackColorPaint;//背景色块画笔
@@ -54,6 +57,9 @@ public class ChartView extends View
     private float dataLineStrodeWidth;
     private boolean isClick;
     private int clickIndex = -1;
+    private final int ClickMax=0;
+    private final int ClickMin=1;
+    private int nowClick;
     Rect bounds = new Rect();
     private PopupWindow mPopWin;
 
@@ -89,43 +95,61 @@ public class ChartView extends View
             Log.d(TAG, "温度数据为空");
             return;
         }
-
         yLable = createYLabel();
-        mDataLineColors = new String[]{"#fbbc14", "#fbaa0c", "#fbaa0c", "#fb8505", "#ff6b02", "#ff5400", "#ff5400"};
-        mDataLinePaint = new Paint();
+        mMaxDataLineColors = new String[]{"#fbbc14", "#fbaa0c", "#fbaa0c", "#fb8505", "#ff6b02", "#ff5400", "#ff5400"};
+        mMinDataLineColors=  new String[]{"#90caf9","#90caf9", "#64b5f6", "#2196f3", "#1e88e5", "#1e88e5","#1976d2"};
+        mMaxDataLinePaint = new Paint();
+        mMinDataLinePaint = new Paint();
         mScaleLinePaint = new Paint();
         mScaleValuePaint = new Paint();
         mBackColorPaint = new Paint();
 
-        mDataLinePaint.setAntiAlias(true);
+        mMaxDataLinePaint.setAntiAlias(true);
+        mMinDataLinePaint.setAntiAlias(true);
         mScaleLinePaint.setAntiAlias(true);
         mScaleValuePaint.setAntiAlias(true);
         mBackColorPaint.setAntiAlias(true);
-
-
     }
 
     private List<String> createYLabel()
     {
-        int[] dataInt = new int[7];
+        int[] maxDataInt = new int[7];
+        int[] minDataInt =new int[7];
         for (int i = 0; i < tempList.size(); i++)
         {
-            dataInt[i] = tempList.get(i).getHighTemp();
+            maxDataInt[i] = tempList.get(i).getHighTemp();
+            minDataInt[i]=tempList.get(i).getLowTemp();
         }
-        Arrays.sort(dataInt);
-        int middle = (dataInt[0] + dataInt[6]) / 2;
-        int scale = Math.abs(dataInt[6] - dataInt[0]) / 5;//将y轴分为6份
-        if(scale==0)
+        Arrays.sort(maxDataInt);
+        Arrays.sort(minDataInt);
+        int middle = (minDataInt[0] + maxDataInt[6]) / 2;
+        double scaleValue = Math.abs(maxDataInt[6] - minDataInt[0]) / 5.0;//将y轴分为6份
+        if(scaleValue==0)
         {
-            scale++;
+            scaleValue++;
         }
+        if((scaleValue-(int)scaleValue)>0.5&&(scaleValue-(int)scaleValue)<1.0)
+        {
+            scaleValue=((int)scaleValue)+1;
+        }
+        int scale = (int) scaleValue;
         List<String> yText = new ArrayList<>();
+        while(true)
+        {
+            if (maxDataInt[6] - (middle + 2 * scale) >= 2 || (middle - 3 * scale) - minDataInt[0] > 2)
+            {
+                scale++;
+            }else
+            {
+                break;
+            }
+        }
+        yText.add((middle - 3 * scale) + "");
         yText.add((middle - 2 * scale) + "");
-        yText.add((middle - scale) + "");
+        yText.add((middle -  scale) + "");
         yText.add(middle + "");
-        yText.add((middle + scale) + "");
+        yText.add((middle +  scale) + "");
         yText.add((middle + 2 * scale) + "");
-        yText.add((middle + 3 * scale) + "");
         return yText;
     }
 
@@ -161,9 +185,12 @@ public class ChartView extends View
         mScaleLinePaint.setColor(0xFFDEDCD8);
         mScaleValuePaint.setColor(0xFF999999);
         mScaleValuePaint.setTextSize(coordTextSize);
-        mDataLinePaint.setStrokeWidth(dataLineStrodeWidth);
-        mDataLinePaint.setStrokeCap(Paint.Cap.ROUND);
-        mDataLinePaint.setTextSize(1.5f * coordTextSize);
+        mMaxDataLinePaint.setStrokeWidth(dataLineStrodeWidth);
+        mMaxDataLinePaint.setStrokeCap(Paint.Cap.ROUND);
+        mMaxDataLinePaint.setTextSize(1.5f * coordTextSize);
+        mMinDataLinePaint.setStrokeWidth(dataLineStrodeWidth);
+        mMinDataLinePaint.setStrokeCap(Paint.Cap.ROUND);
+        mMinDataLinePaint.setTextSize(1.5f * coordTextSize);
     }
 
     @Override
@@ -189,7 +216,7 @@ public class ChartView extends View
                 canvas.drawRect(startPointX + (i - 1) * xScale,
                         startPointY + 0.5f * yScale,
                         startPointX + i * xScale,
-                        yLength + startPointY + 0.5f * yScale,
+                        yLength + startPointY +   yScale,
                         mBackColorPaint);
             }
         }
@@ -251,53 +278,81 @@ public class ChartView extends View
         }
     }
 
-    private void drawDataLines(Canvas canvas)
-    {
-        getDataRoords();
-        for (int i = 0; i < 6; i++)
-        {
-            mDataLinePaint.setColor(Color.parseColor(mDataLineColors[i]));
-            canvas.drawLine(mDataCoords[i][0], mDataCoords[i][1], mDataCoords[i + 1][0], mDataCoords[i + 1][1], mDataLinePaint);
-        }
-    }
-
-    private void drawDataPoints(Canvas canvas)
-    {
-        // 点击后，绘制数据点
-        if (isClick && clickIndex > -1)
-        {
-            mDataLinePaint.setColor(Color.parseColor(mDataLineColors[clickIndex]));
-            canvas.drawCircle(mDataCoords[clickIndex][0], mDataCoords[clickIndex][1], xScale / 10, mDataLinePaint);
-            mDataLinePaint.setColor(Color.WHITE);
-            canvas.drawCircle(mDataCoords[clickIndex][0], mDataCoords[clickIndex][1], xScale / 20, mDataLinePaint);
-            mDataLinePaint.setColor(Color.parseColor(mDataLineColors[clickIndex]));
-        }
-    }
-
-    private void drawTitle(Canvas canvas)
-    {
-        // 绘制标题文本和线条
-        mDataLinePaint.getTextBounds(title, 0, title.length(), bounds);
-        canvas.drawText(title, (getWidth() - bounds.width()) / 2, startPointY + yLength + 1.8f*yScale, mDataLinePaint);
-        canvas.drawLine((getWidth() - bounds.width()) / 2 - xScale / 15,
-                startPointY + yLength + 1.8f*yScale - bounds.height() / 2 + coordTextSize / 4,
-                (getWidth() - bounds.width()) / 2 - xScale / 2,
-                startPointY + yLength + 1.8f*yScale - bounds.height() / 2 + coordTextSize / 4,
-                mDataLinePaint);
-    }
-
     private void getDataRoords()
     {
         float originalPointX = startPointX;
         float originalPointY = startPointY + yLength - yScale;
         for (int i = 0; i < tempList.size(); i++)
         {
-            mDataCoords[i][0] = originalPointX + i * xScale;
-            int dataY = tempList.get(i).getHighTemp();
-            int oriY = Integer.parseInt(yLable.get(0));
-            mDataCoords[i][1] = originalPointY +yScale- (yScale * (dataY - oriY) / (Float.parseFloat(yLable.get(1)) - Float.parseFloat(yLable.get(0))));
+            mMaxDataCoords[i][0] = originalPointX + i * xScale;
+            int dataMaxY = tempList.get(i).getHighTemp();
+            int oriMaxY = Integer.parseInt(yLable.get(0));
+            mMaxDataCoords[i][1] = originalPointY + yScale - (yScale * (dataMaxY - oriMaxY) / (Float.parseFloat(yLable.get(1)) - Float.parseFloat(yLable.get(0))));
+            //准备最低温度的数据
+            mMinDataCoords[i][0] = originalPointX + i * xScale;
+            int dataMinY = tempList.get(i).getLowTemp();
+            int oriMinY = Integer.parseInt(yLable.get(0));
+            mMinDataCoords[i][1] = originalPointY +yScale- (yScale * (dataMinY - oriMinY) / (Float.parseFloat(yLable.get(1)) - Float.parseFloat(yLable.get(0))));
         }
     }
+
+    private void drawDataLines(Canvas canvas)
+    {
+        getDataRoords();
+        for (int i = 0; i < 6; i++)
+        {
+            mMaxDataLinePaint.setColor(Color.parseColor(mMaxDataLineColors[i]));
+            canvas.drawLine(mMaxDataCoords[i][0], mMaxDataCoords[i][1], mMaxDataCoords[i + 1][0], mMaxDataCoords[i + 1][1], mMaxDataLinePaint);
+
+            mMinDataLinePaint.setColor(Color.parseColor(mMinDataLineColors[i]));
+            canvas.drawLine(mMinDataCoords[i][0], mMinDataCoords[i][1], mMinDataCoords[i + 1][0], mMinDataCoords[i + 1][1], mMinDataLinePaint);
+
+        }
+    }
+
+    private void drawDataPoints(Canvas canvas)
+    {
+        // 点击后，绘制数据点
+        if (isClick && clickIndex > -1&&nowClick==ClickMax)
+        {
+            mMaxDataLinePaint.setColor(Color.parseColor(mMaxDataLineColors[clickIndex]));
+            canvas.drawCircle(mMaxDataCoords[clickIndex][0], mMaxDataCoords[clickIndex][1], xScale / 10, mMaxDataLinePaint);
+            mMaxDataLinePaint.setColor(Color.WHITE);
+            canvas.drawCircle(mMaxDataCoords[clickIndex][0], mMaxDataCoords[clickIndex][1], xScale / 20, mMaxDataLinePaint);
+            mMaxDataLinePaint.setColor(Color.parseColor(mMaxDataLineColors[clickIndex]));
+        }else if(isClick && clickIndex > -1&&nowClick==ClickMin)
+        {
+            mMinDataLinePaint.setColor(Color.parseColor(mMinDataLineColors[clickIndex]));
+            canvas.drawCircle(mMinDataCoords[clickIndex][0], mMinDataCoords[clickIndex][1], xScale / 10, mMinDataLinePaint);
+            mMinDataLinePaint.setColor(Color.WHITE);
+            canvas.drawCircle(mMinDataCoords[clickIndex][0], mMinDataCoords[clickIndex][1], xScale / 20, mMinDataLinePaint);
+            mMinDataLinePaint.setColor(Color.parseColor(mMinDataLineColors[clickIndex]));
+
+        }
+    }
+
+    private void drawTitle(Canvas canvas)
+    {
+        // 绘制标题文本和线条
+        Paint paint;
+        if(nowClick==ClickMin)
+        {
+            paint=mMinDataLinePaint;
+        }else
+        {
+            paint=mMaxDataLinePaint;
+        }
+        paint.getTextBounds(title, 0, title.length(), bounds);
+
+        canvas.drawText(title, (getWidth() - bounds.width()) / 2, startPointY + yLength + 1.8f*yScale, paint);
+        canvas.drawLine((getWidth() - bounds.width()) / 2 - xScale / 15,
+                startPointY + yLength + 1.8f*yScale - bounds.height() / 2 + coordTextSize / 4,
+                (getWidth() - bounds.width()) / 2 - xScale / 2,
+                startPointY + yLength + 1.8f*yScale - bounds.height() / 2 + coordTextSize / 4,
+                paint);
+    }
+
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event)
@@ -306,43 +361,84 @@ public class ChartView extends View
         float touchY = event.getY();
         for (int i = 0; i < 7; i++)
         {
-            float dataX = mDataCoords[i][0];
-            float dataY = mDataCoords[i][1];
+            float maxDataX = mMaxDataCoords[i][0];
+            float maxDataY = mMaxDataCoords[i][1];
+            float minDataX = mMinDataCoords[i][0];
+            float minDataY = mMinDataCoords[i][1];
             // 控制触摸/点击的范围，在有效范围内才触发
-            if (Math.abs(touchX - dataX) < xScale / 2 && Math.abs(touchY - dataY) < yScale / 2)
+            if (Math.abs(touchX - maxDataX) < xScale / 2 && Math.abs(touchY - maxDataY) < yScale / 2)
             {
                 isClick = true;
+                nowClick=ClickMax;
                 clickIndex = i;
                 invalidate();     // 重绘展示数据点小圆圈
-                showDetails(i);   // 通过PopupWindow展示详细数据信息
+                showDetails(i,ClickMax);   // 通过PopupWindow展示详细数据信息
                 return true;
-            } else
+            }
+            else if (Math.abs(touchX - minDataX) < xScale / 2 && Math.abs(touchY - minDataY) < yScale / 2)
+            {
+                isClick = true;
+                nowClick=ClickMin;
+                clickIndex = i;
+                invalidate();     // 重绘展示数据点小圆圈
+                showDetails(i,ClickMin);   // 通过PopupWindow展示详细数据信息
+                return true;
+            }
+            else
             {
                 hideDetails();
             }
             clickIndex = -1;
+            nowClick=-1;
             invalidate();
         }
         return super.onTouchEvent(event);
     }
 
-    private void showDetails(int index)
+    private void showDetails(int index,int ClickWhat)
     {
         if (mPopWin != null) mPopWin.dismiss();
         TextView tv = new TextView(getContext());
         tv.setTextColor(Color.WHITE);
-        tv.setBackgroundResource(R.drawable.shape_pop_bg);
+        if(ClickWhat==ClickMax)
+        {
+            tv.setBackgroundResource(R.drawable.shape_max_pop_bg);
+        }else
+        {
+            tv.setBackgroundResource(R.drawable.shape_min_pop_bg);
+        }
         GradientDrawable myGrad = (GradientDrawable) tv.getBackground();
-        myGrad.setColor(Color.parseColor(mDataLineColors[index]));
+        if(ClickWhat==ClickMax)
+        {
+            myGrad.setColor(Color.parseColor(mMaxDataLineColors[index]));
+        }else
+        {
+            myGrad.setColor(Color.parseColor(mMinDataLineColors[index]));
+        }
         tv.setPadding(20, 0, 20, 0);
         tv.setGravity(Gravity.CENTER);
-        tv.setText(tempList.get(index).getHighTemp() + "°");
+        if(ClickWhat==ClickMax)
+        {
+            tv.setText(tempList.get(index).getHighTemp() + "°");
+        }else
+        {
+            tv.setText(tempList.get(index).getLowTemp() + "°");
+        }
         mPopWin = new PopupWindow(tv, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         mPopWin.setBackgroundDrawable(new ColorDrawable(0));
         mPopWin.setFocusable(false);
         // 根据坐标点的位置计算弹窗的展示位置
-        int xoff = (int) (mDataCoords[index][0] - 0.5f * xScale);
-        int yoff = -(int) (getHeight() - mDataCoords[index][1] + 0.75f * yScale);
+        int xoff;
+        int yoff;
+        if(ClickWhat==ClickMax)
+        {
+             xoff = (int) (mMaxDataCoords[index][0] - 0.5f * xScale);
+             yoff = -(int) (getHeight() - mMaxDataCoords[index][1] + 0.75f * yScale);
+        }else
+        {
+             xoff = (int) (mMinDataCoords[index][0] - 0.5f * xScale);
+             yoff = -(int) (getHeight() - mMinDataCoords[index][1] + 0.75f * yScale);
+        }
         mPopWin.showAsDropDown(this, xoff, yoff);
         mPopWin.update();
     }

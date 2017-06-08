@@ -185,7 +185,7 @@ public class DetailActivity extends Activity
 
     private void initCharView(ChartView chartView, List<TempBean> tempBeanList, JsonBean jsonBean)
     {
-        chartView.setTitle("七日最高温度折线图");
+        chartView.setTitle("七日温度折线图");
         chartView.setxLabel(jsonBean);
         Log.d("temp", tempBeanList.toString());
         chartView.setData(tempBeanList);
