@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="150dp"
+              android:id="@+id/main_card2"
+              android:background="@color/hotColor"
+              >
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/widget_pic"
+        android:src="@mipmap/sunny_logo"
+        android:layout_margin="20dp"
+        />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/widget_temp"
+        android:layout_toEndOf="@id/widget_pic"
+        android:layout_marginTop="45dp"
+        />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/widget_des"
+        android:layout_toEndOf="@id/widget_pic"
+        android:layout_marginTop="90dp"
+        android:layout_marginLeft="40dp"
+        />
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:id="@+id/widget_local"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="60dp"
+        android:layout_marginTop="12dp"
+        android:src="@mipmap/local"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:text="新都"
+        android:textSize="20sp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginTop="10dp"
+
+        android:id="@+id/widget_local_city"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:text="32-18"
+        android:textColor="#FFFFFF"
+        android:layout_below="@id/widget_local_city"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginTop="5dp"
+        android:id="@+id/widget_temp_range"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:text="18:00:00 更新"
+        android:textColor="#FFFFFF"
+        android:layout_below="@id/widget_local_city"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginTop="25dp"
+        android:id="@+id/widget_update_time"
+        />
+</RelativeLayout>
+
+
+

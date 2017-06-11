@@ -28,6 +28,7 @@
                     android:layout_gravity="center"
                     android:layout_marginTop="40dp"
                     android:text="**°"
+                    android:transitionName="trTemp"
                     android:textColor="#ffff"
                     android:textSize="100sp"/>
 
@@ -46,6 +47,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="40dp"
+                    android:transitionName="trPic"
                     android:src="@mipmap/rainy_logo"/>
 
 

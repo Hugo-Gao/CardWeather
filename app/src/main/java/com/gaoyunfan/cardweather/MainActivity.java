@@ -1,7 +1,6 @@
 package com.gaoyunfan.cardweather;
 
 import android.app.Activity;
-import android.app.ActivityOptions;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,6 +18,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -39,6 +40,8 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.lljjcoder.citypickerview.widget.CityPicker;
+import com.varunest.sparkbutton.SparkButton;
+import com.varunest.sparkbutton.SparkEventListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,6 +78,8 @@ import tool.LocationUtil;
 import tool.RecyScrollListener;
 import tool.SPUtil;
 
+import static tool.SPUtil.GetStarCities;
+
 public class MainActivity extends Activity
 {
 
@@ -90,9 +95,11 @@ public class MainActivity extends Activity
     private final int GET_JSON = 1;
     private final int REMOVE_ALL = 2;
     private final int ADD_PRE_BEAN = 3;
+    private final int CHECK_STAR=4;
     private boolean fromLocal = true;
     private MainBean overAllBean;
     private JsonBean overAllJsonBean;
+    private SparkButton sparkButton;
     private Handler handler = new Handler(new Handler.Callback()
     {
         @Override
@@ -133,6 +140,17 @@ public class MainActivity extends Activity
                         }
                     }
                     break;
+                case CHECK_STAR:
+                    String name = (String) msg.obj;
+                    Set<String> starCitySet = SPUtil.GetStarCities(MainActivity.this);
+                    if (starCitySet.contains(name))
+                    {
+                        sparkButton.setChecked(true);
+                    }else
+                    {
+                        sparkButton.setChecked(false);
+                    }
+                    break;
             }
             return false;
         }
@@ -164,9 +182,11 @@ public class MainActivity extends Activity
             intent.putExtra("jsonBean", overAllJsonBean);
             if (OverLollipop())
             {
-                ActivityOptions options = ActivityOptions
-                        .makeSceneTransitionAnimation(MainActivity.this,
-                                mainCard, mainCard.getTransitionName());
+                Pair p1 = Pair.create(todayLogo, todayLogo.getTransitionName());
+                Pair p2 = Pair.create(todayTemp, todayTemp.getTransitionName());
+
+                ActivityOptionsCompat options = ActivityOptionsCompat
+                        .makeSceneTransitionAnimation(MainActivity.this,p1,p2);
                 startActivityForResult(intent, 1, options.toBundle());
             } else
             {
@@ -175,6 +195,7 @@ public class MainActivity extends Activity
         }
 
     }
+
 
     @OnClick(R.id.floatbutton)
     public void fabClick(FloatingActionButton fab)
@@ -243,7 +264,13 @@ public class MainActivity extends Activity
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         hideStatusBar();
-        WelcomeActivity.instance.finish();
+        try
+        {
+            WelcomeActivity.instance.finish();
+        }catch (Exception e)
+        {
+            Log.d("haha", "WelcomeActivity Finish Error");
+        }
         preBeanList = new ArrayList<>();
         locationUtil = new LocationUtil(this);
         adapter = new FutureCardAdapter(this, preBeanList);
@@ -281,7 +308,40 @@ public class MainActivity extends Activity
         });
 
         recyclerView.addOnScrollListener(new RecyScrollListener(mainCard));
+        sparkButton = (SparkButton) findViewById(R.id.like_btn);
+        sparkButton.setEventListener(new SparkEventListener()
+        {
+            @Override
+            public void onEvent(ImageView button, boolean buttonState)
+            {
+                final String name=cityName!=null?cityName:tempCityName;
+                if(name==null)
+                {
+                    Toasty.error(MainActivity.this,"暂未获取到城市",Toast.LENGTH_SHORT,true).show();
+                    return;
+                }
+                if(buttonState)
+                {
+                    Toasty.success(MainActivity.this, "收藏" + name + "成功", Toast.LENGTH_SHORT, true).show();
+                    SPUtil.SaveStarCities(MainActivity.this,name);
+                }else
+                {
+                    Toasty.success(MainActivity.this, "已取消收藏" + name, Toast.LENGTH_SHORT, true).show();
+                    SPUtil.DeleteStarCity(MainActivity.this,name);
+                }
 
+            }
+            @Override
+            public void onEventAnimationEnd(ImageView button, boolean buttonState)
+            {
+
+            }
+            @Override
+            public void onEventAnimationStart(ImageView button, boolean buttonState)
+            {
+
+            }
+        });
     }
 
 
@@ -337,6 +397,9 @@ public class MainActivity extends Activity
                         fromLocal = false;
                         message.obj = jsonBean;
                         handler.sendMessage(message);
+                        //是否需要点亮熄灭收藏图标
+                        checkStarButton(cityName);
+
                     } else
                     {
                         Log.d("haha", "重新发送网络请求");
@@ -351,6 +414,14 @@ public class MainActivity extends Activity
                 }
             }
         });
+    }
+
+    private void checkStarButton(String cityName)
+    {
+        Message message3 = handler.obtainMessage();
+        message3.what=CHECK_STAR;
+        message3.obj=cityName;
+        handler.sendMessage(message3);
     }
 
     /**
@@ -536,7 +607,8 @@ public class MainActivity extends Activity
             bean.setPmValue(jsonBean.PM25.info.pm25);
         }
         bean.setPic(BitmapFactory.decodeResource(getResources(), R.mipmap.sunny_logo));
-        if (bean.getWeatherInfo().contains("多云") || bean.getWeatherInfo().contains("阴天"))
+
+        if (bean.getWeatherInfo().contains("多云") || bean.getWeatherInfo().contains("阴"))
         {
             bean.setPic(BitmapFactory.decodeResource(getResources(), R.mipmap.cloudy_logo));
         } else if (bean.getWeatherInfo().contains("雨"))
@@ -830,6 +902,8 @@ public class MainActivity extends Activity
                 {
                     SPUtil.SaveStarCities(MainActivity.this, target);
                     Toasty.success(MainActivity.this, "收藏" + target + "成功", Toast.LENGTH_SHORT, true).show();
+                    checkStarButton(target);
+                    sparkButton.playAnimation();
                 } else
                 {
                     Toasty.error(MainActivity.this, "对不起，你还没有添加当前城市", Toast.LENGTH_SHORT, true).show();
@@ -843,7 +917,7 @@ public class MainActivity extends Activity
             public void onClick(View v)
             {
                 bottomDialog.dismiss();
-                Set<String> citySet = SPUtil.GetStarCities(MainActivity.this);
+                Set<String> citySet = GetStarCities(MainActivity.this);
                 final Dialog collectionsDialog = new Dialog(MainActivity.this, R.style.BottomDialog);
                 View contentView2 = LayoutInflater.from(MainActivity.this).inflate(R.layout.city_collect_layout, null);
                 collectionsDialog.setContentView(contentView2);
@@ -871,6 +945,7 @@ public class MainActivity extends Activity
                     public void onDismiss(DialogInterface dialog)
                     {
                         AnimationUtil.FABRotateToNormal(fab);
+                        checkStarButton(cityName);
                     }
                 });
                 RecyclerView recyclerView = (RecyclerView) collectionsDialog.findViewById(R.id.city_collect_recycler);
@@ -906,7 +981,7 @@ public class MainActivity extends Activity
 
     private boolean OverLollipop()
     {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1;
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
 
     public static int dp2px(Context context, float dpVal)
@@ -914,5 +989,6 @@ public class MainActivity extends Activity
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal,
                 context.getResources().getDisplayMetrics());
     }
+
 
 }

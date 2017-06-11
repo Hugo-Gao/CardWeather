@@ -203,8 +203,10 @@ public class ChartView extends View
         drawDataLines(canvas);//绘制数据连线
         drawDataPoints(canvas);//绘制数据点
         drawTitle(canvas);//绘制标题
-
+        drawPS(canvas);
     }
+
+
 
 
     private void drawBackColor(Canvas canvas)
@@ -351,6 +353,24 @@ public class ChartView extends View
                 startPointY + yLength + 1.8f*yScale - bounds.height() / 2 + coordTextSize / 4,
                 paint);
     }
+    private void drawPS(Canvas canvas)
+    {
+        Paint maxPaint=mMaxDataLinePaint;
+        maxPaint.setTextSize(1.5f * coordTextSize);
+        Paint minPaint=mMinDataLinePaint;
+        minPaint.setTextSize(1.5f * coordTextSize);
+        String maxStr="最高温度";
+        String minStr="最低温度";
+        maxPaint.getTextBounds(maxStr, 0, maxStr.length(), bounds);
+        int height=bounds.height();
+        int width = bounds.width();
+        canvas.drawText(maxStr, startPointX,startPointY-10, maxPaint);
+        canvas.drawLine(startPointX+width+30,startPointY-(height/2.0f),startPointX+width+width-20,startPointY-(height/2.0f),maxPaint);
+        canvas.drawText(minStr, startPointX, startPointY + height + 10, minPaint);
+        canvas.drawLine(startPointX+width+30,startPointY-(height/2.0f)+ height + 20,startPointX+width+width-20,startPointY-(height/2.0f)+ height + 20,minPaint);
+
+    }
+
 
 
 

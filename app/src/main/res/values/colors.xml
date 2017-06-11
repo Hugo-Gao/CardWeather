@@ -8,6 +8,10 @@
     <color name="colorCloudy">#8D95A1</color>
     <color name="colorSunny">#F5BE25</color>
     <color name="colorRainy">#457AD1</color>
+    <color name="colorFirst">#da4439</color>
+    <color name="colorSecond">#8a098c</color>
+
+    <color name="transparent_background">#50000000</color>
 
     <color name="frazeColor">#ADACA7</color> <!-- 0以下 -->
     <color name="veryColdColor">#5BE7C4</color> <!-- 0到5 -->

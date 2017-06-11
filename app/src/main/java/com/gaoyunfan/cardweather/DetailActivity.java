@@ -211,6 +211,7 @@ public class DetailActivity extends Activity
 
     private void setLayoutView(Intent intent)
     {
+        Log.d("haha", intent.getStringExtra("which"));
         if (intent.getStringExtra("which").contains("多云") || intent.getStringExtra("which").contains("阴"))
         {
             setContentView(R.layout.detail_layout_cloudy);
@@ -247,6 +248,8 @@ public class DetailActivity extends Activity
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
     }
+
+
 
 
 }
