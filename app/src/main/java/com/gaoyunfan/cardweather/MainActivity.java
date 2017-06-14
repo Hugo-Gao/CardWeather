@@ -73,6 +73,7 @@ import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import service.WidgetUpdateService;
 import tool.AnimationUtil;
 import tool.LocationUtil;
 import tool.RecyScrollListener;
@@ -279,6 +280,22 @@ public class MainActivity extends Activity
         recyclerView.setItemAnimator(animator);
         recyclerView.getItemAnimator().setAddDuration(500);
         recyclerView.setAdapter(adapter);
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                JsonBean jsonBean = getJsonFormLocal();
+                if (jsonBean != null)
+                {
+                    Message message = Message.obtain();
+                    message.obj = jsonBean;
+                    message.what = GET_JSON;
+                    fromLocal = true;
+                    handler.sendMessage(message);
+                }
+            }
+        }).start();
         final Geocoder ge = new Geocoder(this);
         gson = new Gson();
         if (SPUtil.GetInitialCity(this) != null)
@@ -399,7 +416,12 @@ public class MainActivity extends Activity
                         handler.sendMessage(message);
                         //是否需要点亮熄灭收藏图标
                         checkStarButton(cityName);
-
+                        if(SPUtil.GetInitialCity(MainActivity.this)==null)
+                        {
+                            SPUtil.SaveInitialCity(MainActivity.this,cityName);
+                        }
+                        Intent intent = new Intent(MainActivity.this, WidgetUpdateService.class);
+                        startService(intent);
                     } else
                     {
                         Log.d("haha", "重新发送网络请求");
@@ -884,6 +906,8 @@ public class MainActivity extends Activity
                 {
                     SPUtil.SaveInitialCity(MainActivity.this, target);
                     Toasty.success(MainActivity.this, "设置" + target + "为默认城市成功", Toast.LENGTH_SHORT, true).show();
+                    Intent intent = new Intent(MainActivity.this, WidgetUpdateService.class);
+                    startService(intent);
                 } else
                 {
                     Toasty.error(MainActivity.this, "对不起，你还没有添加当前城市", Toast.LENGTH_SHORT, true).show();
