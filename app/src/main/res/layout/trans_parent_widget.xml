@@ -1,0 +1,42 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="200dp"
+                android:layout_height="110dp"
+                android:background="@color/transparent_background"
+                android:padding="@dimen/widget_margin"
+                android:layout_margin="10dp"
+                 android:id="@+id/main_card3">
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@mipmap/sunny_logo"
+        android:layout_marginTop="25dp"
+        android:layout_marginStart="20dp"
+        android:id="@+id/trans_widget_weather_pic"
+        />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="25℃"
+        android:textSize="40sp"
+        android:textColor="#FFFFFF"
+        android:layout_toRightOf="@id/trans_widget_weather_pic"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/trans_widget_temp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="06-10 周一"
+        android:textSize="15sp"
+        android:textColor="#FFFFFF"
+        android:layout_below="@id/trans_widget_temp"
+        android:layout_toRightOf="@id/trans_widget_weather_pic"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="18dp"
+        android:id="@+id/trans_widget_date"
+        />
+</RelativeLayout>

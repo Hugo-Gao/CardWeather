@@ -13,7 +13,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/logo"
+        android:icon="@mipmap/logotest"
         android:label="卡片天气"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
@@ -30,13 +30,25 @@
         <activity android:name=".DetailActivity"/>
 
         <service android:name="service.WidgetUpdateService"/>
+        <service android:name="service.TransparentWidgetService"/>
         <receiver android:name="layout.MainCardWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/main_card_widget_info"/>
+        </receiver>
+
+        <receiver android:name="layout.TransParentWidget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/trans_parent_widget_info"/>
         </receiver>
     </application>
 

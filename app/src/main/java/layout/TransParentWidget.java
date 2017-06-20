@@ -26,43 +26,31 @@ import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import tool.ColorUtil;
 import tool.SPUtil;
-import tool.ScreenUtil;
 
-import static tool.ScreenUtil.buildUpdate;
+import static tool.ScreenUtil.converToMainBean;
 import static tool.ScreenUtil.judgeWeatherInfo;
 
 /**
  * Implementation of App Widget functionality.
  */
-public class MainCardWidget extends AppWidgetProvider
+public class TransParentWidget extends AppWidgetProvider
 {
     private final String AppKey = "5525d200e35c443eb70948bc960141b3";
     private final String apiUri = "http://api.avatardata.cn/Weather/Query";
-    public MainCardWidget()
+
+    public TransParentWidget()
     {
         super();
     }
 
     @Override
-    public void onReceive(Context context, Intent intent) {
-        super.onReceive(context, intent);
-    }
-
-    /**
-     * 根据 updatePeriodMillis 定义的定期刷新操作会调用该函数，此外当用户添加 Widget 时也会调用该函数，可以在这里进行必要的初始化操作。
-     * @param context
-     * @param appWidgetManager
-     * @param appWidgetIds
-     */
-    @Override
-    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        super.onUpdate(context, appWidgetManager, appWidgetIds);
-        Log.i("shenlong", "onUpdate");
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds)
+    {
+        // There may be multiple widgets active, so update all of them
         for (int i = 0; i < appWidgetIds.length; i++) {
+            Log.d("haha", "进入透明设置");
             int appWidgetId = appWidgetIds[i];
-            Log.i("shenlong", "onUpdate appWidgetId=" + appWidgetId);
             Intent intent = new Intent();
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK |
                     Intent.FLAG_ACTIVITY_TASK_ON_HOME);
@@ -70,16 +58,14 @@ public class MainCardWidget extends AppWidgetProvider
             PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.main_card_widget);
-            views.setOnClickPendingIntent(R.id.main_card2, pendingIntent);
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.trans_parent_widget);
+            views.setOnClickPendingIntent(R.id.main_card3, pendingIntent);
             //刷新控件
             String cityName= SPUtil.GetInitialCity(context);
-            views.setTextViewText(R.id.widget_local_city,cityName);
-            getNewWeatherInfo(context,cityName,appWidgetManager,appWidgetId,views);
 
+            getNewWeatherInfo(context,cityName,appWidgetManager,appWidgetId,views);
         }
     }
-
     private int getNewWeatherInfo(final Context context, final String cityName, final AppWidgetManager appWidgetManager, final int appWidgetId, final RemoteViews views)
     {
         final int[] values = {-1};
@@ -116,7 +102,7 @@ public class MainCardWidget extends AppWidgetProvider
                         Log.d("haha", "widget获取到正确json");
                         JSONObject resultobject = jsonObject.getJSONObject("result");
                         JsonBean jsonBean = gson.fromJson(String.valueOf(resultobject), JsonBean.class);
-                        MainBean bean =ScreenUtil.converToMainBean(context, jsonBean);
+                        MainBean bean = converToMainBean(context, jsonBean);
                         refreshViews(context,bean,jsonBean,views);
                         appWidgetManager.updateAppWidget(appWidgetId, views);
                     } else
@@ -139,25 +125,20 @@ public class MainCardWidget extends AppWidgetProvider
         return values[0];
     }
 
-    private void refreshViews(Context context,MainBean bean,JsonBean jsonBean, RemoteViews views)
+    private void refreshViews(Context context, MainBean bean, JsonBean jsonBean, RemoteViews views)
     {
-
-        views.setImageViewBitmap(R.id.widget_temp, buildUpdate(bean.getTemp() + "°", context, ScreenUtil.dp2px(context, 40f),
-                ScreenUtil.dp2px(context, 55f),ScreenUtil. dp2px(context, 200f), ScreenUtil.dp2px(context, 120f), 65f));
-        judgeWeatherInfo(context,views, bean,R.id.widget_des,R.id.widget_pic);
-        views.setTextViewText(R.id.widget_temp_range, jsonBean.weather.get(0).weatherInfo.night.get(2) + "°~" + jsonBean.weather.get(0).weatherInfo.day.get(2) + "°");
-        int temp = Integer.parseInt(bean.getTemp());
-        views.setInt(R.id.main_card2, "setBackgroundColor", ColorUtil.checkToColor(context, temp ));
-        views.setTextViewText(R.id.widget_update_time, jsonBean.realTime.time + " 更新");
+        judgeWeatherInfo(context,views,bean,0,R.id.trans_widget_weather_pic);
+        views.setTextViewText(R.id.trans_widget_temp,bean.getTemp()+"℃");
+        String date=getDateString(jsonBean);
+        views.setTextViewText(R.id.trans_widget_date,date);
     }
 
-
-
-
-
-
-
-
+    private String getDateString(JsonBean jsonBean)
+    {
+        StringBuilder date = new StringBuilder(jsonBean.weather.get(0).date.substring(5)+" ");
+        date.append("周").append(jsonBean.weather.get(0).week);
+        return date.toString();
+    }
 
 
 }

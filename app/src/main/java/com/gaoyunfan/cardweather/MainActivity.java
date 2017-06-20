@@ -73,6 +73,7 @@ import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import service.TransparentWidgetService;
 import service.WidgetUpdateService;
 import tool.AnimationUtil;
 import tool.LocationUtil;
@@ -421,7 +422,9 @@ public class MainActivity extends Activity
                             SPUtil.SaveInitialCity(MainActivity.this,cityName);
                         }
                         Intent intent = new Intent(MainActivity.this, WidgetUpdateService.class);
+                        Intent transWidgetIntent = new Intent(MainActivity.this, TransparentWidgetService.class);
                         startService(intent);
+                        startService(transWidgetIntent);
                     } else
                     {
                         Log.d("haha", "重新发送网络请求");
@@ -907,7 +910,9 @@ public class MainActivity extends Activity
                     SPUtil.SaveInitialCity(MainActivity.this, target);
                     Toasty.success(MainActivity.this, "设置" + target + "为默认城市成功", Toast.LENGTH_SHORT, true).show();
                     Intent intent = new Intent(MainActivity.this, WidgetUpdateService.class);
+                    Intent transIntent = new Intent(MainActivity.this, TransparentWidgetService.class);
                     startService(intent);
+                    startService(transIntent);
                 } else
                 {
                     Toasty.error(MainActivity.this, "对不起，你还没有添加当前城市", Toast.LENGTH_SHORT, true).show();

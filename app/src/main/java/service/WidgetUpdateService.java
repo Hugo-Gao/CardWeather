@@ -8,7 +8,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -19,7 +18,6 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.util.TypedValue;
 import android.widget.RemoteViews;
 
 import com.gaoyunfan.cardweather.MainActivity;
@@ -42,6 +40,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import tool.SPUtil;
+
+import static tool.ColorUtil.checkToColor;
+import static tool.ScreenUtil.converToMainBean;
+import static tool.ScreenUtil.dp2px;
+import static tool.ScreenUtil.sp2px;
 
 /**
  * Created by Administrator on 2017/6/13.
@@ -221,64 +224,8 @@ public class WidgetUpdateService extends Service
         }
     }
 
-    private MainBean converToMainBean(Context context, JsonBean jsonBean)
-    {
-        MainBean bean = new MainBean.Builder().windSpeed(jsonBean.realTime.windInfo.power)
-                .time(jsonBean.realTime.time).date(jsonBean.realTime.week)
-                .humidity(jsonBean.realTime.weatherInfo.humidity).temp(jsonBean.realTime.weatherInfo.temperature)
-                .weatherInfo(jsonBean.realTime.weatherInfo.info).build();
-        if (jsonBean.PM25 == null)
-        {
-            bean.setPmValue("..");
-        } else
-        {
-            bean.setPmValue(jsonBean.PM25.info.pm25);
-        }
-        bean.setPic(BitmapFactory.decodeResource(context.getResources(), R.mipmap.sunny_logo));
 
-        if (bean.getWeatherInfo().contains("多云") || bean.getWeatherInfo().contains("阴"))
-        {
-            bean.setPic(BitmapFactory.decodeResource(context.getResources(), R.mipmap.cloudy_logo));
-        } else if (bean.getWeatherInfo().contains("雨"))
-        {
-            bean.setPic(BitmapFactory.decodeResource(context.getResources(), R.mipmap.rainy_logo));
-        } else if (bean.getWeatherInfo().contains("雪"))
-        {
-            bean.setPic(BitmapFactory.decodeResource(context.getResources(), R.mipmap.snowy_logo));
-        }
-        return bean;
-    }
 
-    private int checkToColor(Context context, int temp)
-    {
-        int toColor = context.getResources().getColor(R.color.fineColor);
-        if (temp >= 30)
-        {
-            toColor = context.getResources().getColor(R.color.veryHotColor);
-        } else if (temp >= 25 && temp < 30)
-        {
-            toColor = context.getResources().getColor(R.color.hotColor);
-        } else if (temp >= 20 && temp < 25)
-        {
-            toColor = context.getResources().getColor(R.color.coolColor);
-        } else if (temp >= 15 && temp < 20)
-        {
-            toColor = context.getResources().getColor(R.color.fineColor);
-        } else if (temp >= 10 && temp < 15)
-        {
-            toColor = context.getResources().getColor(R.color.underFineColor);
-        } else if (temp >= 5 && temp < 10)
-        {
-            toColor = context.getResources().getColor(R.color.coldColor);
-        } else if (temp >= 0 && temp < 5)
-        {
-            toColor = context.getResources().getColor(R.color.veryColdColor);
-        } else if (temp < 0)
-        {
-            toColor = context.getResources().getColor(R.color.frazeColor);
-        }
-        return toColor;
-    }
 
     static Bitmap buildUpdate(String temp, Context context, int x, int y, int width, int height, float fontSize)
     {
@@ -299,17 +246,7 @@ public class WidgetUpdateService extends Service
         return myBitmap;
     }
 
-    public static int sp2px(Context context, float spValue)
-    {
-        final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
-        return (int) (spValue * fontScale + 0.5f);
-    }
 
-    public static int dp2px(Context context, float dpVal)
-    {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal,
-                context.getResources().getDisplayMetrics());
-    }
 
 
     protected final class UpdateHandler extends Handler
