@@ -28,11 +28,13 @@ public class LocationUtil
             //是否为GPS位置控制器
             provider = LocationManager.NETWORK_PROVIDER;
             Log.d(TAG, provider + "可用");
+            return;
         }
         else if (list.contains(LocationManager.GPS_PROVIDER)) {
             //是否为网络位置控制器
             provider = LocationManager.GPS_PROVIDER;
             Log.d(TAG, provider + "可用");
+            return;
         } else {
             Toast.makeText(context, "请检查网络或GPS是否打开",
                     Toast.LENGTH_LONG).show();

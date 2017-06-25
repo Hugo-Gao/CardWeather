@@ -120,7 +120,6 @@ public class TransParentWidget extends AppWidgetProvider
         });
         while(values[0]!=1)
         {
-            Log.d("haha", "widget等待数据");
         }
         return values[0];
     }

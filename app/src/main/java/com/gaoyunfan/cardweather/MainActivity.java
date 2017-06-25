@@ -9,7 +9,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -76,6 +75,7 @@ import okhttp3.Response;
 import service.TransparentWidgetService;
 import service.WidgetUpdateService;
 import tool.AnimationUtil;
+import tool.BaiduAPIHelper;
 import tool.LocationUtil;
 import tool.RecyScrollListener;
 import tool.SPUtil;
@@ -102,6 +102,7 @@ public class MainActivity extends Activity
     private MainBean overAllBean;
     private JsonBean overAllJsonBean;
     private SparkButton sparkButton;
+    private BaiduAPIHelper baiduAPIHelper;
     private Handler handler = new Handler(new Handler.Callback()
     {
         @Override
@@ -214,8 +215,7 @@ public class MainActivity extends Activity
         AnimationUtil.ConfirmAndBigger(button);
         cityName = null;
         tempCityName = null;
-        final Geocoder ge = new Geocoder(this);
-        getNowLocation(ge);
+        getNowLocation();
     }
 
     @BindView(R.id.weekday)
@@ -297,7 +297,7 @@ public class MainActivity extends Activity
                 }
             }
         }).start();
-        final Geocoder ge = new Geocoder(this);
+         baiduAPIHelper = new BaiduAPIHelper();
         gson = new Gson();
         if (SPUtil.GetInitialCity(this) != null)
         {
@@ -308,7 +308,7 @@ public class MainActivity extends Activity
         } else
         {
             Log.d("haha", "没有获取到默认城市");
-            getNowLocation(ge);
+            getNowLocation();
         }
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
         {
@@ -318,7 +318,7 @@ public class MainActivity extends Activity
                 if (cityName == null)
                 {
                     swipeRefreshLayout.setRefreshing(false);
-                    getNowLocation(ge);
+                    getNowLocation();
                     return;
                 }
                 getNewWeatherInfo();
@@ -532,7 +532,7 @@ public class MainActivity extends Activity
         return jsonBean;
     }
 
-    private void getNowLocation(final Geocoder ge)
+    private void getNowLocation()
     {
         swipeRefreshLayout.setRefreshing(true);
         new Thread(new Runnable()
@@ -561,17 +561,18 @@ public class MainActivity extends Activity
                 newLocation = locationUtil.getLocation();
                 try
                 {
-                    tempCityName = ge.getFromLocation(newLocation.getLatitude(), newLocation.getLongitude(), 1).get(0).getLocality();
+                    /*tempCityName = ge.getFromLocation(newLocation.getLatitude(), newLocation.getLongitude(), 1).get(0).getLocality();
                     StringBuilder stringBuilder = new StringBuilder(ge.getFromLocation(newLocation.getLatitude(),
-                            newLocation.getLongitude(), 1).get(0).getSubLocality());//获取新都区
-                    stringBuilder = stringBuilder.deleteCharAt(stringBuilder.length() - 1);//裁剪为新都
-                    Log.d("location", "获得了" + stringBuilder.toString());
-                    if (cityName != null && (cityName.equals(stringBuilder.toString()) || cityName.equals(tempCityName)))
+                            newLocation.getLongitude(), 1).get(0).getSubLocality());//获取新都区*/
+                    List<String> cities = baiduAPIHelper.getCityName(newLocation.getLatitude() + "", newLocation.getLongitude() + "");
+
+                    cityName = cities.get(1);
+                    if ((cityName.charAt(cityName.length() - 1) == '区' || cityName.charAt(cityName.length() - 1) == '县') && cityName.length() > 2)
                     {
-                        return;
+                        StringBuilder cityNameBuilder = new StringBuilder(cityName);
+                        cityName = cityNameBuilder.substring(0, cityNameBuilder.length() - 1);
                     }
-                    Log.d("location", "不一样" + cityName + " and " + stringBuilder.toString());
-                    cityName = stringBuilder.toString();
+                    tempCityName = cities.get(0);
                     getNewWeatherInfo();
                 } catch (Exception e)
                 {
