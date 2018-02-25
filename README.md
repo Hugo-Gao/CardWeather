@@ -1,4 +1,4 @@
-#简记
+# 简记
 
 [简记Github地址](https://github.com/Hugo-Gao/SimpleCount)
 
